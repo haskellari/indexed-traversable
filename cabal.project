@@ -1,2 +1,7 @@
 packages: with-index
 packages: with-index-instances
+
+-- packages: free
+-- packages: lens
+-- packages: optics/optics-core
+-- packages: optics/optics-extra
