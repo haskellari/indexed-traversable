@@ -1,0 +1,9 @@
+packages: indexed-traversable
+packages: indexed-traversable-instances
+
+-- packages: free
+-- packages: lens
+-- packages: optics/optics-core
+-- packages: optics/optics-extra
+-- packages: optics/optics-th
+-- packages: optics/optics
