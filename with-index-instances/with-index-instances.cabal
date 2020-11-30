@@ -1,0 +1,26 @@
+cabal-version: 1.12
+name:          with-index-instances
+version:       0.1
+build-type:    Simple
+license:       BSD2
+license-file:  LICENSE
+category:      Data
+maintainer:    Oleg Grenrus <oleg.grenrus@iki.fi>
+author:        Edward Kmett
+synopsis:      FunctorWithIndex, FoldableWithIndex, TraversableWithIndex
+description:
+  This package provides extra instances for type-classes in @with-index@
+
+library
+  default-language: Haskell2010
+  ghc-options:      -Wall
+  hs-source-dirs:   src
+  build-depends:
+      base                  >=4.5      && <4.16
+    , comonad               >=5.0.6    && <5.1
+    , tagged                >=0.8.6    && <0.9
+    , unordered-containers  >=0.2.8.0  && <0.3
+    , vector                >=0.12.1.2 && <0.13
+    , with-index            >=0.1      && <0.2
+
+  exposed-modules:  Data.Functor.WithIndex.Instances
