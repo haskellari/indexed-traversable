@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE UndecidableInstances   #-}
@@ -14,7 +15,7 @@ import Data.HashMap.Lazy            (HashMap)
 import Data.Tagged                  (Tagged (..))
 import Data.Vector                  (Vector)
 
-import qualified Data.HashMap.Lazy as HashMap
+import qualified Data.HashMap.Lazy as HM
 import qualified Data.Vector       as V
 
 import Data.Foldable.WithIndex
@@ -61,14 +62,23 @@ instance FoldableWithIndex Int Vector where
   {-# INLINE ifoldr' #-}
   ifoldl' = V.ifoldl' . flip
   {-# INLINE ifoldl' #-}
-instance TraversableWithIndex Int Vector
+instance TraversableWithIndex Int Vector where
+  itraverse f v =
+    let !n = V.length v in V.fromListN n <$> itraverse f (V.toList v)
+  {-# INLINE itraverse #-}
 
 -------------------------------------------------------------------------------
 -- unordered-containers
 -------------------------------------------------------------------------------
 
-instance FunctorWithIndex k (HashMap k)
-instance FoldableWithIndex k (HashMap k)
+instance FunctorWithIndex k (HashMap k) where
+  imap = HM.mapWithKey
+  {-# INLINE imap #-}
+instance FoldableWithIndex k (HashMap k) where
+  ifoldr  = HM.foldrWithKey
+  ifoldl' = HM.foldlWithKey' . flip
+  {-# INLINE ifoldr #-}
+  {-# INLINE ifoldl' #-}
 instance TraversableWithIndex k (HashMap k) where
-  itraverse = HashMap.traverseWithKey
+  itraverse = HM.traverseWithKey
   {-# INLINE [0] itraverse #-}

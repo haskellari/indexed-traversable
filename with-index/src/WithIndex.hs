@@ -10,7 +10,7 @@ module WithIndex where
 
 import Prelude
        (Either (..), Functor (..), Int, Maybe (..), Monad (..), Num (..), error,
-       flip, id, seq, snd, uncurry, ($!), ($), (.))
+       flip, id, seq, snd, uncurry, ($!), ($), (.), zip)
 
 import Control.Applicative
        (Applicative (..), Const (..), ZipList (..), (<$>))
@@ -164,32 +164,75 @@ class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => Traversabl
   {-# INLINE itraverse #-}
 
 -------------------------------------------------------------------------------
--- Instances
+-- base
 -------------------------------------------------------------------------------
 
-instance FunctorWithIndex i f => FunctorWithIndex i (Backwards f) where
-  imap f  = Backwards . imap f . forwards
+instance FunctorWithIndex r ((->) r) where
+  imap f g x = f x (g x)
   {-# INLINE imap #-}
 
-instance FoldableWithIndex i f => FoldableWithIndex i (Backwards f) where
-  ifoldMap f = ifoldMap f . forwards
+instance FunctorWithIndex () Maybe where
+  imap f = fmap (f ())
+  {-# INLINE imap #-}
+instance FoldableWithIndex () Maybe where
+  ifoldMap f = foldMap (f ())
   {-# INLINE ifoldMap #-}
-
-instance TraversableWithIndex i f => TraversableWithIndex i (Backwards f) where
-  itraverse f = fmap Backwards . itraverse f . forwards
+instance TraversableWithIndex () Maybe where
+  itraverse f = traverse (f ())
   {-# INLINE itraverse #-}
 
-instance FunctorWithIndex i f => FunctorWithIndex i (Reverse f) where
-  imap f = Reverse . imap f . getReverse
+instance FunctorWithIndex Void Proxy where
+  imap _ Proxy = Proxy
   {-# INLINE imap #-}
 
-instance FoldableWithIndex i f => FoldableWithIndex i (Reverse f) where
-  ifoldMap f = getDual . ifoldMap (\i -> Dual #. f i) . getReverse
+instance FoldableWithIndex Void Proxy where
+  ifoldMap _ _ = mempty
   {-# INLINE ifoldMap #-}
 
-instance TraversableWithIndex i f => TraversableWithIndex i (Reverse f) where
-  itraverse f = fmap Reverse . forwards . itraverse (\i -> Backwards . f i) . getReverse
+instance TraversableWithIndex Void Proxy where
+  itraverse _ _ = pure Proxy
   {-# INLINE itraverse #-}
+
+instance FunctorWithIndex k ((,) k) where
+  imap f (k,a) = (k, f k a)
+  {-# INLINE imap #-}
+
+instance FoldableWithIndex k ((,) k) where
+  ifoldMap = uncurry
+  {-# INLINE ifoldMap #-}
+
+instance TraversableWithIndex k ((,) k) where
+  itraverse f (k, a) = (,) k <$> f k a
+  {-# INLINE itraverse #-}
+
+-- | The position in the list is available as the index.
+instance FunctorWithIndex Int []
+instance FoldableWithIndex Int []
+instance TraversableWithIndex Int [] where
+  itraverse f = traverse (uncurry' f) . zip [0..]
+  {-# INLINE itraverse #-}
+
+-- | Same instance as for @[]@.
+instance FunctorWithIndex Int ZipList
+instance FoldableWithIndex Int ZipList
+instance TraversableWithIndex Int ZipList where
+  itraverse f (ZipList xs) = ZipList <$> itraverse f xs
+  {-# INLINE itraverse #-}
+
+-------------------------------------------------------------------------------
+-- (former) semigroups
+-------------------------------------------------------------------------------
+
+instance FunctorWithIndex Int NonEmpty
+instance FoldableWithIndex Int NonEmpty
+instance TraversableWithIndex Int NonEmpty where
+  itraverse f ~(a :| as) =
+    (:|) <$> f 0 a <*> traverse (uncurry' f) (zip [1..] as)
+  {-# INLINE itraverse #-}
+
+-------------------------------------------------------------------------------
+-- Functors (formely) from transformers
+-------------------------------------------------------------------------------
 
 instance FunctorWithIndex () Identity where
   imap f (Identity a) = Identity (f () a)
@@ -227,97 +270,6 @@ instance TraversableWithIndex Void (Constant e) where
   itraverse _ (Constant a) = pure (Constant a)
   {-# INLINE itraverse #-}
 
-instance FunctorWithIndex k ((,) k) where
-  imap f (k,a) = (k, f k a)
-  {-# INLINE imap #-}
-
-instance FoldableWithIndex k ((,) k) where
-  ifoldMap = uncurry
-  {-# INLINE ifoldMap #-}
-
-instance TraversableWithIndex k ((,) k) where
-  itraverse f (k, a) = (,) k <$> f k a
-  {-# INLINE itraverse #-}
-
--- | The position in the list is available as the index.
-instance FunctorWithIndex Int []
-instance FoldableWithIndex Int []
-instance TraversableWithIndex Int []
-
--- | Same instance as for @[]@.
-instance FunctorWithIndex Int ZipList
-instance FoldableWithIndex Int ZipList
-instance TraversableWithIndex Int ZipList
-
-instance FunctorWithIndex Int NonEmpty
-instance FoldableWithIndex Int NonEmpty
-instance TraversableWithIndex Int NonEmpty
-
-instance FunctorWithIndex () Maybe where
-  imap f = fmap (f ())
-  {-# INLINE imap #-}
-instance FoldableWithIndex () Maybe where
-  ifoldMap f = foldMap (f ())
-  {-# INLINE ifoldMap #-}
-instance TraversableWithIndex () Maybe where
-  itraverse f = traverse (f ())
-  {-# INLINE itraverse #-}
-
--- | The position in the 'Seq' is available as the index.
-instance FunctorWithIndex Int Seq where
-  imap = Seq.mapWithIndex
-instance FoldableWithIndex Int Seq where
-#if MIN_VERSION_containers(0,5,8)
-  ifoldMap = Seq.foldMapWithIndex
-#else
-  ifoldMap f = Data.Foldable.fold . Seq.mapWithIndex f
-#endif
-  ifoldr = Seq.foldrWithIndex
-  ifoldl f = Seq.foldlWithIndex (flip f)
-  {-# INLINE ifoldl #-}
-instance TraversableWithIndex Int Seq where
-#if MIN_VERSION_containers(0,5,8)
-  itraverse = Seq.traverseWithIndex
-#else
-  itraverse f = sequenceA . Seq.mapWithIndex f
-#endif
-
-instance FunctorWithIndex Int IntMap
-instance FoldableWithIndex Int IntMap
-instance TraversableWithIndex Int IntMap where
-#if MIN_VERSION_containers(0,5,0)
-  itraverse = IntMap.traverseWithKey
-#else
-  itraverse f = sequenceA . IntMap.mapWithKey f
-#endif
-  {-# INLINE [0] itraverse #-}
-
-instance FunctorWithIndex k (Map k)
-instance FoldableWithIndex k (Map k)
-instance TraversableWithIndex k (Map k) where
-#if MIN_VERSION_containers(0,5,0)
-  itraverse = Map.traverseWithKey
-#else
-  itraverse f = sequenceA . Map.mapWithKey f
-#endif
-  {-# INLINE [0] itraverse #-}
-
-instance FunctorWithIndex r ((->) r) where
-  imap f g x = f x (g x)
-  {-# INLINE imap #-}
-
-instance Ix i => FunctorWithIndex i (Array i) where
-  imap f arr = Array.listArray (Array.bounds arr) . fmap (uncurry f) $ Array.assocs arr
-  {-# INLINE imap #-}
-
-instance Ix i => FoldableWithIndex i (Array i) where
-  ifoldMap f = foldMap (uncurry f) . Array.assocs
-  {-# INLINE ifoldMap #-}
-
-instance Ix i => TraversableWithIndex i (Array i) where
-  itraverse f arr = Array.listArray (Array.bounds arr) <$> traverse (uncurry f) (Array.assocs arr)
-  {-# INLINE itraverse #-}
-
 instance (FunctorWithIndex i f, FunctorWithIndex j g) => FunctorWithIndex (i, j) (Compose f g) where
   imap f (Compose fg) = Compose $ imap (\k -> imap (f . (,) k)) fg
   {-# INLINE imap #-}
@@ -345,18 +297,6 @@ instance (TraversableWithIndex i f, TraversableWithIndex j g) => TraversableWith
   itraverse q (InR ga) = InR <$> itraverse (q . Right) ga
   {-# INLINE itraverse #-}
 
-instance FunctorWithIndex i m => FunctorWithIndex i (IdentityT m) where
-  imap f (IdentityT m) = IdentityT $ imap f m
-  {-# INLINE imap #-}
-
-instance FoldableWithIndex i m => FoldableWithIndex i (IdentityT m) where
-  ifoldMap f (IdentityT m) = ifoldMap f m
-  {-# INLINE ifoldMap #-}
-
-instance TraversableWithIndex i m => TraversableWithIndex i (IdentityT m) where
-  itraverse f (IdentityT m) = IdentityT <$> itraverse f m
-  {-# INLINE itraverse #-}
-
 instance (FunctorWithIndex i f, FunctorWithIndex j g) => FunctorWithIndex (Either i j) (Product f g) where
   imap f (Pair a b) = Pair (imap (f . Left) a) (imap (f . Right) b)
   {-# INLINE imap #-}
@@ -369,9 +309,69 @@ instance (TraversableWithIndex i f, TraversableWithIndex j g) => TraversableWith
   itraverse f (Pair a b) = Pair <$> itraverse (f . Left) a <*> itraverse (f . Right) b
   {-# INLINE itraverse #-}
 
+-------------------------------------------------------------------------------
+-- transformers
+-------------------------------------------------------------------------------
+
+instance FunctorWithIndex i m => FunctorWithIndex i (IdentityT m) where
+  imap f (IdentityT m) = IdentityT $ imap f m
+  {-# INLINE imap #-}
+
+instance FoldableWithIndex i m => FoldableWithIndex i (IdentityT m) where
+  ifoldMap f (IdentityT m) = ifoldMap f m
+  {-# INLINE ifoldMap #-}
+
+instance TraversableWithIndex i m => TraversableWithIndex i (IdentityT m) where
+  itraverse f (IdentityT m) = IdentityT <$> itraverse f m
+  {-# INLINE itraverse #-}
+
 instance FunctorWithIndex i m => FunctorWithIndex (e, i) (ReaderT e m) where
   imap f (ReaderT m) = ReaderT $ \k -> imap (f . (,) k) (m k)
   {-# INLINE imap #-}
+
+instance FunctorWithIndex i f => FunctorWithIndex i (Backwards f) where
+  imap f  = Backwards . imap f . forwards
+  {-# INLINE imap #-}
+
+instance FoldableWithIndex i f => FoldableWithIndex i (Backwards f) where
+  ifoldMap f = ifoldMap f . forwards
+  {-# INLINE ifoldMap #-}
+
+instance TraversableWithIndex i f => TraversableWithIndex i (Backwards f) where
+  itraverse f = fmap Backwards . itraverse f . forwards
+  {-# INLINE itraverse #-}
+
+instance FunctorWithIndex i f => FunctorWithIndex i (Reverse f) where
+  imap f = Reverse . imap f . getReverse
+  {-# INLINE imap #-}
+
+instance FoldableWithIndex i f => FoldableWithIndex i (Reverse f) where
+  ifoldMap f = getDual . ifoldMap (\i -> Dual #. f i) . getReverse
+  {-# INLINE ifoldMap #-}
+
+instance TraversableWithIndex i f => TraversableWithIndex i (Reverse f) where
+  itraverse f = fmap Reverse . forwards . itraverse (\i -> Backwards . f i) . getReverse
+  {-# INLINE itraverse #-}
+
+-------------------------------------------------------------------------------
+-- array
+-------------------------------------------------------------------------------
+
+instance Ix i => FunctorWithIndex i (Array i) where
+  imap f arr = Array.listArray (Array.bounds arr) . fmap (uncurry' f) $ Array.assocs arr
+  {-# INLINE imap #-}
+
+instance Ix i => FoldableWithIndex i (Array i) where
+  ifoldMap f = foldMap (uncurry' f) . Array.assocs
+  {-# INLINE ifoldMap #-}
+
+instance Ix i => TraversableWithIndex i (Array i) where
+  itraverse f arr = Array.listArray (Array.bounds arr) <$> traverse (uncurry' f) (Array.assocs arr)
+  {-# INLINE itraverse #-}
+
+-------------------------------------------------------------------------------
+-- containers
+-------------------------------------------------------------------------------
 
 instance FunctorWithIndex [Int] Tree where
   imap f (Node a as) = Node (f [] a) $ imap (\i -> imap (f . (:) i)) as
@@ -384,18 +384,79 @@ instance FoldableWithIndex [Int] Tree where
 instance TraversableWithIndex [Int] Tree where
   itraverse f (Node a as) = Node <$> f [] a <*> itraverse (\i -> itraverse (f . (:) i)) as
   {-# INLINE itraverse #-}
+--
+-- | The position in the 'Seq' is available as the index.
+instance FunctorWithIndex Int Seq where
+  imap = Seq.mapWithIndex
+instance FoldableWithIndex Int Seq where
+#if MIN_VERSION_containers(0,5,8)
+  ifoldMap = Seq.foldMapWithIndex
+#else
+  ifoldMap f = Data.Foldable.fold . Seq.mapWithIndex f
+#endif
+  ifoldr = Seq.foldrWithIndex
+  ifoldl f = Seq.foldlWithIndex (flip f)
+  {-# INLINE ifoldl #-}
+instance TraversableWithIndex Int Seq where
+#if MIN_VERSION_containers(0,6,0)
+  itraverse = Seq.traverseWithIndex
+#else
+  -- Much faster than Seq.traverseWithIndex for containers < 0.6.0, see
+  -- https://github.com/haskell/containers/issues/603.
+  itraverse f = sequenceA . Seq.mapWithIndex f
+#endif
 
-instance FunctorWithIndex Void Proxy where
-  imap _ Proxy = Proxy
+instance FunctorWithIndex Int IntMap where
+  imap = IntMap.mapWithKey 
   {-# INLINE imap #-}
 
-instance FoldableWithIndex Void Proxy where
-  ifoldMap _ _ = mempty
+instance FoldableWithIndex Int IntMap where
+#if MIN_VERSION_containers(0,5,4)
+  ifoldMap = IntMap.foldMapWithKey
   {-# INLINE ifoldMap #-}
+#endif
+#if MIN_VERSION_containers(0,5,0)
+  ifoldr   = IntMap.foldrWithKey
+  ifoldl'  = IntMap.foldlWithKey' . flip
+  {-# INLINE ifoldr #-}
+  {-# INLINE ifoldl' #-}
+#endif
 
-instance TraversableWithIndex Void Proxy where
-  itraverse _ _ = pure Proxy
-  {-# INLINE itraverse #-}
+instance TraversableWithIndex Int IntMap where
+#if MIN_VERSION_containers(0,5,0)
+  itraverse = IntMap.traverseWithKey
+#else
+  itraverse f = sequenceA . IntMap.mapWithKey f
+#endif
+  {-# INLINE [0] itraverse #-}
+
+instance FunctorWithIndex k (Map k) where
+  imap = Map.mapWithKey
+  {-# INLINE imap #-}
+  
+instance FoldableWithIndex k (Map k) where
+#if MIN_VERSION_containers(0,5,4)
+  ifoldMap = Map.foldMapWithKey
+  {-# INLINE ifoldMap #-}
+#endif
+#if MIN_VERSION_containers(0,5,0)
+  ifoldr   = Map.foldrWithKey
+  ifoldl'  = Map.foldlWithKey' . flip
+  {-# INLINE ifoldr #-}
+  {-# INLINE ifoldl' #-}
+#endif
+
+instance TraversableWithIndex k (Map k) where
+#if MIN_VERSION_containers(0,5,0)
+  itraverse = Map.traverseWithKey
+#else
+  itraverse f = sequenceA . Map.mapWithKey f
+#endif
+  {-# INLINE [0] itraverse #-}
+
+-------------------------------------------------------------------------------
+-- GHC.Generics
+-------------------------------------------------------------------------------
 
 instance FunctorWithIndex Void V1 where
   imap _ v = v `seq` error "imap @V1"
@@ -572,3 +633,10 @@ instance Applicative f => Applicative (Indexing f) where
     (j, ff) -> case ma j of
        ~(k, fa) -> (k, ff <*> fa)
   {-# INLINE (<*>) #-}
+
+-------------------------------------------------------------------------------
+-- Strict curry
+-------------------------------------------------------------------------------
+
+uncurry' :: (a -> b -> c) -> (a, b) -> c
+uncurry' f (a, b) = f a b
