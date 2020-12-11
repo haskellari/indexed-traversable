@@ -405,6 +405,7 @@ instance TraversableWithIndex Int Seq where
   -- https://github.com/haskell/containers/issues/603.
   itraverse f = sequenceA . Seq.mapWithIndex f
 #endif
+  {-# INLINE itraverse #-}
 
 instance FunctorWithIndex Int IntMap where
   imap = IntMap.mapWithKey 
