@@ -1,5 +1,5 @@
 cabal-version: 1.12
-name:          with-index-instances
+name:          traversable-with-index-instances
 version:       0.1
 build-type:    Simple
 license:       BSD2
@@ -33,6 +33,6 @@ library
     , tagged                >=0.8.6    && <0.9
     , unordered-containers  >=0.2.8.0  && <0.3
     , vector                >=0.12.1.2 && <0.13
-    , with-index            >=0.1      && <0.2
+    , traversable-with-index            >=0.1      && <0.2
 
   exposed-modules:  Data.Functor.WithIndex.Instances

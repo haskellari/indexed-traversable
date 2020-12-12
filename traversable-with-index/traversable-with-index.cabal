@@ -1,5 +1,5 @@
 cabal-version: 1.12
-name:          with-index
+name:          traversable-with-index
 version:       0.1
 build-type:    Simple
 license:       BSD2

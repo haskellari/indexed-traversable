@@ -1,7 +1,9 @@
-packages: with-index
-packages: with-index-instances
+packages: traversable-with-index
+packages: traversable-with-index-instances
 
 -- packages: free
 -- packages: lens
 -- packages: optics/optics-core
 -- packages: optics/optics-extra
+-- packages: optics/optics-th
+-- packages: optics/optics
