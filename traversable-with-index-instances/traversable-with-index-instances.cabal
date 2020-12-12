@@ -7,9 +7,17 @@ license-file:  LICENSE
 category:      Data
 maintainer:    Oleg Grenrus <oleg.grenrus@iki.fi>
 author:        Edward Kmett
-synopsis:      FunctorWithIndex, FoldableWithIndex, TraversableWithIndex
+synopsis:
+  More instances of FunctorWithIndex, FoldableWithIndex, TraversableWithIndex
+
 description:
-  This package provides extra instances for type-classes in @with-index@
+  This package provides extra instances for type-classes in the [traversable-with-index](https://hackage.haskell.org/package/traversable-with-index) package.
+  .
+  The intention is to keep this package minimal;
+  it provides instances that formely existed in @lens@ or @optics-extra@.
+  We recommend putting other instances directly into their defining packages.
+  The @with-index@ package is light, having only GHC boot libraries
+  as its dependencies.
 
 tested-with:
   GHC ==7.4.2
@@ -28,11 +36,11 @@ library
   ghc-options:      -Wall
   hs-source-dirs:   src
   build-depends:
-      base                  >=4.5      && <4.16
-    , comonad               >=5.0.6    && <5.1
-    , tagged                >=0.8.6    && <0.9
-    , unordered-containers  >=0.2.8.0  && <0.3
-    , vector                >=0.12.1.2 && <0.13
-    , traversable-with-index            >=0.1      && <0.2
+      base                    >=4.5      && <4.16
+    , comonad                 >=5.0.6    && <5.1
+    , tagged                  >=0.8.6    && <0.9
+    , traversable-with-index  >=0.1      && <0.2
+    , unordered-containers    >=0.2.8.0  && <0.3
+    , vector                  >=0.12.1.2 && <0.13
 
   exposed-modules:  Data.Functor.WithIndex.Instances

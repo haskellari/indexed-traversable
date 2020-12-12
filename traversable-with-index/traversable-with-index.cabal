@@ -25,6 +25,12 @@ description:
   class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => TraversableWithIndex i t | t -> i where
   \  itraverse :: Applicative f => (i -> a -> f b) -> t a -> f (t b)
   @
+  .
+  This package contains instances for types in GHC boot libraries.
+  For some additional instances see [traversable-with-index-instances](https://hackage.haskell.org/package/traversable-with-index-instances).
+  .
+  The [keys](https://hackage.haskell.org/package/keys) package provides similar functionality,
+  but uses (associated) @TypeFamilies@ instead of @FunctionalDependencies@.
 
 tested-with:
   GHC ==7.4.2
