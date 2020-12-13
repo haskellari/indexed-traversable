@@ -1,6 +1,6 @@
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE BangPatterns           #-}
+{-# LANGUAGE CPP                    #-}
+{-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE UndecidableInstances   #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -10,7 +10,7 @@
 #endif
 
 #if __GLASGOW_HASKELL__ >= 706
-{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE PolyKinds              #-}
 #endif
 -- | Extra instances for 'FunctorWithIndex', 'FoldableWithIndex',
 -- and 'TraversableWithIndex' type classes.
@@ -18,11 +18,10 @@ module Data.Functor.WithIndex.Instances () where
 
 import Prelude (Int, flip, ($), (.))
 
-import Control.Applicative          ((<$>))
-import Control.Comonad.Trans.Traced (TracedT (..))
-import Data.HashMap.Lazy            (HashMap)
-import Data.Tagged                  (Tagged (..))
-import Data.Vector                  (Vector)
+import Control.Applicative ((<$>))
+import Data.HashMap.Lazy   (HashMap)
+import Data.Tagged         (Tagged (..))
+import Data.Vector         (Vector)
 
 import qualified Data.HashMap.Lazy as HM
 import qualified Data.Vector       as V
@@ -30,14 +29,6 @@ import qualified Data.Vector       as V
 import Data.Foldable.WithIndex
 import Data.Functor.WithIndex
 import Data.Traversable.WithIndex
-
--------------------------------------------------------------------------------
--- comonad
--------------------------------------------------------------------------------
-
-instance FunctorWithIndex i w => FunctorWithIndex (s, i) (TracedT s w) where
-  imap f (TracedT w) = TracedT $ imap (\k' g k -> f (k, k') (g k)) w
-  {-# INLINE imap #-}
 
 -------------------------------------------------------------------------------
 -- tagged
