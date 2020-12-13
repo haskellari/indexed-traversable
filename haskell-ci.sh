@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2086,SC2016,SC2046
-# REGENDATA ("0.11.20201205",["bash","cabal.project"])
+# REGENDATA ("0.11.20201212",["bash","cabal.project"])
 
 set -o pipefail
 
@@ -437,7 +437,7 @@ run_cmd $CABAL --version
 # update cabal index
 if $CABAL_UPDATE; then
     put_info "Updating Hackage index"
-    run_cmd cabal v2-update -v
+    run_cmd $CABAL v2-update -v
 fi
 
 # install cabal-plan
@@ -448,7 +448,7 @@ run_cmd cabal-plan --version
 put_info "sdist"
 change_dir "$SRCDIR"
 run_cmd mkdir -p "$BUILDDIR/sdist"
-run_cmd cabal sdist all --output-dir "$BUILDDIR/sdist"
+run_cmd $CABAL sdist all --output-dir "$BUILDDIR/sdist"
 
 # unpack
 put_info "unpack"
@@ -484,8 +484,8 @@ put_info "install dependencies"
 run_cmd $CABAL v2-build $ARG_COMPILER --disable-tests --disable-benchmarks --dependencies-only all
 run_cmd $CABAL v2-build $ARG_COMPILER $ARG_TESTS $ARG_BENCH --dependencies-only all
 
-# build wo tests
-put_info "build wo tests"
+# build w/o tests
+put_info "build w/o tests"
 run_cmd $CABAL v2-build $ARG_COMPILER --disable-tests --disable-benchmarks all
 
 # build
