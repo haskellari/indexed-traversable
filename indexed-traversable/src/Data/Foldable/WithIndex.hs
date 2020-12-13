@@ -18,12 +18,13 @@ module Data.Foldable.WithIndex (
 ) where
 
 
-import Prelude (Bool, Maybe (..), Monad (..), flip, not, (.))
+import Prelude (Bool, Maybe (..), Monad (..), flip, not, (.), curry)
 
 import Control.Applicative (Applicative (..))
 import Control.Monad       (liftM, void)
 import Data.Foldable       (Foldable, any)
 import Data.Monoid         (All (..), Any (..))
+import GHC.Exts            (build)
 
 import WithIndex
 
@@ -180,6 +181,5 @@ ifoldlM f z0 xs = ifoldr f' return xs z0
 -- 'toList' ≡ 'Data.List.map' 'snd' '.' 'itoList'
 -- @
 itoList :: FoldableWithIndex i f => f a -> [(i,a)]
-itoList = ifoldr (\i c -> ((i,c):)) []
+itoList t = build (\c z -> ifoldr (curry c) z t)
 {-# INLINE itoList #-}
-
