@@ -1,11 +1,19 @@
 {-# LANGUAGE CPP                    #-}
-{-# LANGUAGE DefaultSignatures      #-}
 {-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GADTs                  #-}
-{-# LANGUAGE Trustworthy            #-}
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
+
+#if __GLASGOW_HASKELL__ >= 702
+{-# LANGUAGE Trustworthy            #-}
+{-# LANGUAGE DefaultSignatures      #-}
+#endif
+
+#if __GLASGOW_HASKELL__ >= 706
+{-# LANGUAGE PolyKinds #-}
+#endif
 module WithIndex where
 
 import Prelude
@@ -37,9 +45,15 @@ import Data.Traversable              (Traversable (..))
 import Data.Tree                     (Tree (..))
 import Data.Void                     (Void)
 
+#if __GLASGOW_HASKELL__ >= 702
 import GHC.Generics
        (K1 (..), Par1 (..), Rec1 (..), U1 (..), V1, (:*:) (..), (:+:) (..),
        (:.:) (..))
+#else
+import Generics.Deriving
+       (K1 (..), Par1 (..), Rec1 (..), U1 (..), V1, (:*:) (..), (:+:) (..),
+       (:.:) (..))
+#endif
 
 import qualified Data.Array    as Array
 import qualified Data.IntMap   as IntMap
@@ -71,9 +85,16 @@ import Unsafe.Coerce (unsafeCoerce)
 class Functor f => FunctorWithIndex i f | f -> i where
   -- | Map with access to the index.
   imap :: (i -> a -> b) -> f a -> f b
+
+#if __GLASGOW_HASKELL__ >= 704
   default imap :: TraversableWithIndex i f => (i -> a -> b) -> f a -> f b
-  imap f = runIdentity #. itraverse (\i a -> Identity (f i a))
+  imap = imapDefault
   {-# INLINE imap #-}
+#endif
+
+imapDefault :: TraversableWithIndex i f => (i -> a -> b) -> f a -> f b
+imapDefault f = runIdentity #. itraverse (\i a -> Identity (f i a))
+{-# INLINE imapDefault #-}
 
 -------------------------------------------------------------------------------
 -- FoldableWithIndex
@@ -90,9 +111,12 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   -- 'foldMap' ≡ 'ifoldMap' '.' 'const'
   -- @
   ifoldMap :: Monoid m => (i -> a -> m) -> f a -> m
+
+#if __GLASGOW_HASKELL__ >= 704
   default ifoldMap :: (TraversableWithIndex i f, Monoid m) => (i -> a -> m) -> f a -> m
-  ifoldMap f = getConst #. itraverse (\i a -> Const (f i a))
+  ifoldMap = ifoldMapDefault
   {-# INLINE ifoldMap #-}
+#endif
 
   -- | Right-associative fold of an indexed container with access to the index @i@.
   --
@@ -140,6 +164,10 @@ class Foldable f => FoldableWithIndex i f | f -> i where
     where f' i x k z = k $! f i z x
   {-# INLINE ifoldl' #-}
 
+ifoldMapDefault :: (TraversableWithIndex i f, Monoid m) => (i -> a -> m) -> f a -> m
+ifoldMapDefault f = getConst #. itraverse (\i a -> Const (f i a))
+{-# INLINE ifoldMapDefault #-}
+
 -------------------------------------------------------------------------------
 -- TraversableWithIndex
 -------------------------------------------------------------------------------
@@ -159,9 +187,12 @@ class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => Traversabl
   -- 'itraverse' ≡ 'itraverseOf' 'itraversed'
   -- @
   itraverse :: Applicative f => (i -> a -> f b) -> t a -> f (t b)
+
+#if __GLASGOW_HASKELL__ >= 704
   default itraverse :: (i ~ Int, Applicative f) => (i -> a -> f b) -> t a -> f (t b)
   itraverse f s = snd $ runIndexing (traverse (\a -> Indexing (\i -> i `seq` (i + 1, f i a))) s) 0
   {-# INLINE itraverse #-}
+#endif
 
 -------------------------------------------------------------------------------
 -- base
@@ -206,15 +237,17 @@ instance TraversableWithIndex k ((,) k) where
   {-# INLINE itraverse #-}
 
 -- | The position in the list is available as the index.
-instance FunctorWithIndex Int []
-instance FoldableWithIndex Int []
+instance FunctorWithIndex Int [] where imap = imapDefault
+instance FoldableWithIndex Int [] where ifoldMap = ifoldMapDefault
 instance TraversableWithIndex Int [] where
   itraverse f = traverse (uncurry' f) . zip [0..]
   {-# INLINE itraverse #-}
 
 -- | Same instance as for @[]@.
-instance FunctorWithIndex Int ZipList
-instance FoldableWithIndex Int ZipList
+instance FunctorWithIndex Int ZipList where
+  imap f (ZipList xs) = ZipList (imap f xs)
+instance FoldableWithIndex Int ZipList where
+  ifoldMap f (ZipList xs) = ifoldMap f xs
 instance TraversableWithIndex Int ZipList where
   itraverse f (ZipList xs) = ZipList <$> itraverse f xs
   {-# INLINE itraverse #-}
@@ -223,8 +256,8 @@ instance TraversableWithIndex Int ZipList where
 -- (former) semigroups
 -------------------------------------------------------------------------------
 
-instance FunctorWithIndex Int NonEmpty
-instance FoldableWithIndex Int NonEmpty
+instance FunctorWithIndex Int NonEmpty where imap = imapDefault
+instance FoldableWithIndex Int NonEmpty where ifoldMap = ifoldMapDefault
 instance TraversableWithIndex Int NonEmpty where
   itraverse f ~(a :| as) =
     (:|) <$> f 0 a <*> traverse (uncurry' f) (zip [1..] as)
@@ -414,8 +447,10 @@ instance FunctorWithIndex Int IntMap where
 instance FoldableWithIndex Int IntMap where
 #if MIN_VERSION_containers(0,5,4)
   ifoldMap = IntMap.foldMapWithKey
-  {-# INLINE ifoldMap #-}
+#else
+  ifoldMap = ifoldMapDefault
 #endif
+  {-# INLINE ifoldMap #-}
 #if MIN_VERSION_containers(0,5,0)
   ifoldr   = IntMap.foldrWithKey
   ifoldl'  = IntMap.foldlWithKey' . flip
@@ -438,8 +473,10 @@ instance FunctorWithIndex k (Map k) where
 instance FoldableWithIndex k (Map k) where
 #if MIN_VERSION_containers(0,5,4)
   ifoldMap = Map.foldMapWithKey
-  {-# INLINE ifoldMap #-}
+#else
+  ifoldMap = ifoldMapDefault
 #endif
+  {-# INLINE ifoldMap #-}
 #if MIN_VERSION_containers(0,5,0)
   ifoldr   = Map.foldrWithKey
   ifoldl'  = Map.foldlWithKey' . flip

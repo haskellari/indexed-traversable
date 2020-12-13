@@ -28,25 +28,17 @@ jobs:
       matrix:
         include:
           - ghc: 8.10.2
-            isGhcjs: "0"
           - ghc: 8.8.4
-            isGhcjs: "0"
           - ghc: 8.6.5
-            isGhcjs: "0"
           - ghc: 8.4.4
-            isGhcjs: "0"
           - ghc: 8.2.2
-            isGhcjs: "0"
           - ghc: 8.0.2
-            isGhcjs: "0"
           - ghc: 7.10.3
-            isGhcjs: "0"
           - ghc: 7.8.4
-            isGhcjs: "0"
           - ghc: 7.6.3
-            isGhcjs: "0"
           - ghc: 7.4.2
-            isGhcjs: "0"
+          - ghc: 7.2.2
+          - ghc: 7.0.4
       fail-fast: false
     steps:
       - name: apt
@@ -57,7 +49,6 @@ jobs:
           apt-get update
           apt-get install -y ghc-$GHC_VERSION cabal-install-3.2
         env:
-          GHCJSARITH: ${{ matrix.isGhcjs }}
           GHC_VERSION: ${{ matrix.ghc }}
       - name: Set PATH and environment variables
         run: |
@@ -75,8 +66,8 @@ jobs:
           echo "ARG_TESTS=--enable-tests" >> $GITHUB_ENV
           echo "ARG_BENCH=--enable-benchmarks" >> $GITHUB_ENV
           echo "ARG_COMPILER=--ghc --with-compiler=/opt/ghc/$GHC_VERSION/bin/ghc" >> $GITHUB_ENV
+          echo "GHCJSARITH=0" >> $GITHUB_ENV
         env:
-          GHCJSARITH: ${{ matrix.isGhcjs }}
           GHC_VERSION: ${{ matrix.ghc }}
       - name: env
         run: |
@@ -139,7 +130,7 @@ jobs:
           touch cabal.project
           touch cabal.project.local
           echo "packages: ${PKGDIR_indexed_traversable}" >> cabal.project
-          echo "packages: ${PKGDIR_indexed_traversable_instances}" >> cabal.project
+          if [ $((HCNUMVER >= 70400)) -ne 0 ] ; then echo "packages: ${PKGDIR_indexed_traversable_instances}" >> cabal.project ; fi
           if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "package indexed-traversable" >> cabal.project ; fi
           if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "    ghc-options: -Werror=missing-methods" >> cabal.project ; fi
           if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "package indexed-traversable-instances" >> cabal.project ; fi
@@ -173,8 +164,8 @@ jobs:
         run: |
           cd ${PKGDIR_indexed_traversable} || false
           ${CABAL} -vnormal check
-          cd ${PKGDIR_indexed_traversable_instances} || false
-          ${CABAL} -vnormal check
+          if [ $((HCNUMVER >= 70400)) -ne 0 ] ; then cd ${PKGDIR_indexed_traversable_instances} || false ; fi
+          if [ $((HCNUMVER >= 70400)) -ne 0 ] ; then ${CABAL} -vnormal check ; fi
       - name: haddock
         run: |
           $CABAL v2-haddock $ARG_COMPILER --with-haddock $HADDOCK $ARG_TESTS $ARG_BENCH all
