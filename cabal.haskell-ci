@@ -1,1 +1,2 @@
-branches: master
+branches:       master
+jobs-selection: any

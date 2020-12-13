@@ -19,7 +19,7 @@ fi
 
 CFG_CABAL_STORE_CACHE=""
 CFG_CABAL_REPO_CACHE=""
-CFG_JOBS="8.10.2 8.8.4 8.6.5 8.4.4 8.2.2 8.0.2 7.10.3 7.8.4 7.6.3 7.4.2"
+CFG_JOBS="8.10.2 8.8.4 8.6.5 8.4.4 8.2.2 8.0.2 7.10.3 7.8.4 7.6.3 7.4.2 7.2.2 7.0.4"
 CFG_CABAL_UPDATE=false
 
 SCRIPT_NAME=$(basename "$0")
@@ -459,18 +459,14 @@ run_cmd find "$BUILDDIR/sdist" -maxdepth 1 -type f -name '*.tar.gz' -exec tar -C
 # generate cabal.project
 put_info "generate cabal.project"
 PKGDIR_indexed_traversable="$(find "$BUILDDIR/unpacked" -maxdepth 1 -type d -regex '.*/indexed-traversable-[0-9.]*')"
-PKGDIR_indexed_traversable_instances="$(find "$BUILDDIR/unpacked" -maxdepth 1 -type d -regex '.*/indexed-traversable-instances-[0-9.]*')"
 run_cmd touch cabal.project
 run_cmd touch cabal.project.local
 echo_to cabal.project "packages: ${PKGDIR_indexed_traversable}"
-echo_to cabal.project "packages: ${PKGDIR_indexed_traversable_instances}"
 echo_if_to $((HCNUMVER >= 80200)) cabal.project "package indexed-traversable"
-echo_if_to $((HCNUMVER >= 80200)) cabal.project "    ghc-options: -Werror=missing-methods"
-echo_if_to $((HCNUMVER >= 80200)) cabal.project "package indexed-traversable-instances"
 echo_if_to $((HCNUMVER >= 80200)) cabal.project "    ghc-options: -Werror=missing-methods"
 cat >> cabal.project <<EOF
 EOF
-$HCPKG list --simple-output --names-only | perl -ne 'for (split /\s+/) { print "constraints: $_ installed\n" unless /^(indexed-traversable|indexed-traversable-instances)$/; }' >> cabal.project.local
+$HCPKG list --simple-output --names-only | perl -ne 'for (split /\s+/) { print "constraints: $_ installed\n" unless /^(indexed-traversable)$/; }' >> cabal.project.local
 run_cmd cat cabal.project
 run_cmd cat cabal.project.local
 
@@ -498,8 +494,6 @@ put_info "tests"
 # cabal check
 put_info "cabal check"
 change_dir "${PKGDIR_indexed_traversable}"
-run_cmd ${CABAL} -vnormal check
-change_dir "${PKGDIR_indexed_traversable_instances}"
 run_cmd ${CABAL} -vnormal check
 change_dir "$BUILDDIR"
 

@@ -1,8 +1,17 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE UndecidableInstances   #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+
+#if __GLASGOW_HASKELL__ >= 702
+{-# LANGUAGE Trustworthy            #-}
+#endif
+
+#if __GLASGOW_HASKELL__ >= 706
+{-# LANGUAGE PolyKinds #-}
+#endif
 -- | Extra instances for 'FunctorWithIndex', 'FoldableWithIndex',
 -- and 'TraversableWithIndex' type classes.
 module Data.Functor.WithIndex.Instances () where
