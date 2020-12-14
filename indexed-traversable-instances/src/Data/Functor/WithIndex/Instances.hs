@@ -16,7 +16,7 @@
 -- and 'TraversableWithIndex' type classes.
 module Data.Functor.WithIndex.Instances () where
 
-import Prelude (Int, flip, ($), (.))
+import Prelude (Int, flip, (.))
 
 import Control.Applicative ((<$>))
 import Data.HashMap.Lazy   (HashMap)

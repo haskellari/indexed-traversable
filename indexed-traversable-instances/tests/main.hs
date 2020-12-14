@@ -119,11 +119,5 @@ battery t = testGroup name
 -- Defaults
 -------------------------------------------------------------------------------
 
-imapDefault :: TraversableWithIndex i f => (i -> a -> b) -> f a -> f b
-imapDefault f = runIdentity . itraverse (\i a -> Identity (f i a))
-
-ifoldMapDefault :: (TraversableWithIndex i f, Data.Monoid.Monoid m) => (i -> a -> m) -> f a -> m
-ifoldMapDefault f = getConst . itraverse (\i a -> Const (f i a))
-
 ifoldrDefault :: FoldableWithIndex i f => (i -> a -> b -> b) -> b -> f a -> b
 ifoldrDefault f z t = appEndo (ifoldMap (\i -> Endo . f i) t) z
