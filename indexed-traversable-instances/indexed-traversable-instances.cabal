@@ -32,9 +32,9 @@ tested-with:
    || ==8.10.2
 
 source-repository head
-  type :git
+  type:     git
   location: https://github.com/haskellari/indexed-traversable
-  subdir: indexed-traversable-instances
+  subdir:   indexed-traversable-instances
 
 library
   default-language: Haskell2010
@@ -48,3 +48,24 @@ library
     , vector                >=0.12.1.2 && <0.13
 
   exposed-modules:  Data.Functor.WithIndex.Instances
+
+test-suite indexed-tests
+  type:             exitcode-stdio-1.0
+  default-language: Haskell2010
+  ghc-options:      -Wall
+  hs-source-dirs:   tests
+  main-is:          main.hs
+  build-depends:
+      base
+    , containers
+    , indexed-traversable
+    , indexed-traversable-instances
+    , transformers
+    , unordered-containers
+    , vector
+
+  build-depends:
+      QuickCheck            >=2.14.2   && <2.15
+    , quickcheck-instances  >=0.3.25.1 && <0.4
+    , tasty                 >=1.2.3    && <1.5
+    , tasty-quickcheck      >=0.10.1.1 && <0.11
