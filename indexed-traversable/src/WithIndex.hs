@@ -237,8 +237,12 @@ instance TraversableWithIndex k ((,) k) where
   {-# INLINE itraverse #-}
 
 -- | The position in the list is available as the index.
-instance FunctorWithIndex Int [] where imap = imapDefault
-instance FoldableWithIndex Int [] where ifoldMap = ifoldMapDefault
+instance FunctorWithIndex Int [] where
+  imap = imapDefault
+  {-# INLINE imap #-}
+instance FoldableWithIndex Int [] where
+  ifoldMap = ifoldMapDefault
+  {-# INLINE ifoldMap #-}
 instance TraversableWithIndex Int [] where
   itraverse f = traverse (uncurry' f) . zip [0..]
   {-# INLINE itraverse #-}

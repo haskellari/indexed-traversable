@@ -8,6 +8,9 @@ module Data.Traversable.WithIndex (
     iforM,
     imapAccumR,
     imapAccumL,
+    -- * Default implementations
+    imapDefault,
+    ifoldMapDefault,
 ) where
 
 import Prelude (Monad (..), flip)
