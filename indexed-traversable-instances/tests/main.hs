@@ -100,6 +100,13 @@ battery t = testGroup name
 
         in prop
 
+    , testProperty "ifoldl'Default" $
+        let prop :: Fun (i, B, A) B -> B -> f A -> Property
+            prop f' b xs = ifoldl' f b xs === ifoldl'Default f b xs where
+                f i x y = applyFun f' (i, x, y)
+
+        in prop
+
     , testProperty "toList" $
         let prop :: f A -> Property
             prop xs = toList xs === map snd (itoList xs)
@@ -121,3 +128,7 @@ battery t = testGroup name
 
 ifoldrDefault :: FoldableWithIndex i f => (i -> a -> b -> b) -> b -> f a -> b
 ifoldrDefault f z t = appEndo (ifoldMap (\i -> Endo . f i) t) z
+
+ifoldl'Default :: FoldableWithIndex i f => (i -> b -> a -> b) -> b -> f a -> b
+ifoldl'Default f z0 xs = ifoldr f' id xs z0
+    where f' i x k z = k $! f i z x
