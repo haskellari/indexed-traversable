@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP                    #-}
+{-# LANGUAGE BangPatterns           #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -18,7 +19,7 @@ module WithIndex where
 
 import Prelude
        (Either (..), Functor (..), Int, Maybe (..), Monad (..), Num (..), error,
-       flip, id, seq, snd, uncurry, ($!), ($), (.), zip)
+       flip, id, seq, snd, ($!), ($), (.), zip)
 
 import Control.Applicative
        (Applicative (..), Const (..), ZipList (..), (<$>))
@@ -117,6 +118,11 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   ifoldMap = ifoldMapDefault
   {-# INLINE ifoldMap #-}
 #endif
+
+  -- | A variant of 'ifoldMap' that is strict in the accumulator.
+  ifoldMap' :: Monoid m => (i -> a -> m) -> f a -> m
+  ifoldMap' f = ifoldl' (\i acc a -> mappend acc (f i a)) mempty
+  {-# INLINE ifoldMap' #-}
 
   -- | Right-associative fold of an indexed container with access to the index @i@.
   --
@@ -229,7 +235,7 @@ instance FunctorWithIndex k ((,) k) where
   {-# INLINE imap #-}
 
 instance FoldableWithIndex k ((,) k) where
-  ifoldMap = uncurry
+  ifoldMap = uncurry'
   {-# INLINE ifoldMap #-}
 
 instance TraversableWithIndex k ((,) k) where
@@ -238,20 +244,31 @@ instance TraversableWithIndex k ((,) k) where
 
 -- | The position in the list is available as the index.
 instance FunctorWithIndex Int [] where
-  imap = imapDefault
+  imap f = go 0 where
+    go !_ []     = []
+    go !n (x:xs) = f n x : go (n + 1) xs
   {-# INLINE imap #-}
 instance FoldableWithIndex Int [] where
   ifoldMap = ifoldMapDefault
   {-# INLINE ifoldMap #-}
+  ifoldr f z = go 0 where
+    go !_ []     = z
+    go !n (x:xs) = f n x (go (n + 1) xs)
+  {-# INLINE ifoldr #-}
 instance TraversableWithIndex Int [] where
   itraverse f = traverse (uncurry' f) . zip [0..]
   {-# INLINE itraverse #-}
 
+-- TODO: we could experiment with streaming framework
+-- imapListFB f xs = build (\c n -> ifoldr (\i a -> c (f i a)) n xs)
+
 -- | Same instance as for @[]@.
 instance FunctorWithIndex Int ZipList where
   imap f (ZipList xs) = ZipList (imap f xs)
+  {-# INLINE imap #-}
 instance FoldableWithIndex Int ZipList where
   ifoldMap f (ZipList xs) = ifoldMap f xs
+  {-# INLINE ifoldMap #-}
 instance TraversableWithIndex Int ZipList where
   itraverse f (ZipList xs) = ZipList <$> itraverse f xs
   {-# INLINE itraverse #-}
@@ -260,8 +277,12 @@ instance TraversableWithIndex Int ZipList where
 -- (former) semigroups
 -------------------------------------------------------------------------------
 
-instance FunctorWithIndex Int NonEmpty where imap = imapDefault
-instance FoldableWithIndex Int NonEmpty where ifoldMap = ifoldMapDefault
+instance FunctorWithIndex Int NonEmpty where
+  imap = imapDefault
+  {-# INLINE imap #-}
+instance FoldableWithIndex Int NonEmpty where
+  ifoldMap = ifoldMapDefault
+  {-# INLINE ifoldMap #-}
 instance TraversableWithIndex Int NonEmpty where
   itraverse f ~(a :| as) =
     (:|) <$> f 0 a <*> traverse (uncurry' f) (zip [1..] as)
@@ -425,13 +446,16 @@ instance TraversableWithIndex [Int] Tree where
 -- | The position in the 'Seq' is available as the index.
 instance FunctorWithIndex Int Seq where
   imap = Seq.mapWithIndex
+  {-# INLINE imap #-}
 instance FoldableWithIndex Int Seq where
 #if MIN_VERSION_containers(0,5,8)
   ifoldMap = Seq.foldMapWithIndex
 #else
   ifoldMap f = Data.Foldable.fold . Seq.mapWithIndex f
 #endif
+  {-# INLINE ifoldMap #-}
   ifoldr = Seq.foldrWithIndex
+  {-# INLINE ifoldr #-}
   ifoldl f = Seq.foldlWithIndex (flip f)
   {-# INLINE ifoldl #-}
 instance TraversableWithIndex Int Seq where
@@ -609,6 +633,7 @@ _ #. x = coerce x
 _ #. x = unsafeCoerce x
 #endif
 infixr 9 #.
+{-# INLINE (#.) #-}
 
 skip :: a -> ()
 skip _ = ()
@@ -682,3 +707,4 @@ instance Applicative f => Applicative (Indexing f) where
 
 uncurry' :: (a -> b -> c) -> (a, b) -> c
 uncurry' f (a, b) = f a b
+{-# INLINE uncurry' #-}

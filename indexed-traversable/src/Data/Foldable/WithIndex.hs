@@ -181,5 +181,5 @@ ifoldlM f z0 xs = ifoldr f' return xs z0
 -- 'toList' ≡ 'Data.List.map' 'snd' '.' 'itoList'
 -- @
 itoList :: FoldableWithIndex i f => f a -> [(i,a)]
-itoList t = build (\c z -> ifoldr (curry c) z t)
+itoList xs = build (\c n -> ifoldr (curry c) n xs)
 {-# INLINE itoList #-}
