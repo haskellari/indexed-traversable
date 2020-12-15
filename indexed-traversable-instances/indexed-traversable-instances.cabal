@@ -1,12 +1,12 @@
-cabal-version: 1.12
-name:          indexed-traversable-instances
-version:       0.1
-build-type:    Simple
-license:       BSD2
-license-file:  LICENSE
-category:      Data
-maintainer:    Oleg Grenrus <oleg.grenrus@iki.fi>
-author:        Edward Kmett
+cabal-version:      1.12
+name:               indexed-traversable-instances
+version:            0.1
+build-type:         Simple
+license:            BSD2
+license-file:       LICENSE
+category:           Data
+maintainer:         Oleg Grenrus <oleg.grenrus@iki.fi>
+author:             Edward Kmett
 synopsis:
   More instances of FunctorWithIndex, FoldableWithIndex, TraversableWithIndex
 
@@ -19,6 +19,7 @@ description:
   The @indexed-traversable@ package is light, having only GHC boot libraries
   as its dependencies.
 
+extra-source-files: Changelog.md
 tested-with:
   GHC ==7.4.2
    || ==7.6.3
