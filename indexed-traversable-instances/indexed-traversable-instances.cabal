@@ -50,6 +50,17 @@ library
 
   exposed-modules:  Data.Functor.WithIndex.Instances
 
+test-suite safe
+  type:             exitcode-stdio-1.0
+  default-language: Haskell2010
+  ghc-options:      -Wall
+  hs-source-dirs:   tests
+  main-is:          safe.hs
+  build-depends:
+      base
+    , indexed-traversable
+    , indexed-traversable-instances
+
 test-suite indexed-tests
   type:             exitcode-stdio-1.0
   default-language: Haskell2010

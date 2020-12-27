@@ -1,2 +1,3 @@
-branches:       master
-jobs-selection: any
+branches:             master
+install-dependencies: False
+jobs-selection:       any
