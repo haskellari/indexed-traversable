@@ -1,3 +1,9 @@
+{-# LANGUAGE CPP         #-}
+#if __GLASGOW_HASKELL__ >= 704
+{-# LANGUAGE Safe        #-}
+#elif __GLASGOW_HASKELL__ >= 702
+{-# LANGUAGE Trustworthy #-}
+#endif
 -- | Indexed Foldables.
 module Data.Foldable.WithIndex (
     -- * Indexed Foldables
@@ -24,8 +30,8 @@ import Control.Applicative (Applicative (..))
 import Control.Monad       (liftM, void)
 import Data.Foldable       (Foldable, any)
 import Data.Monoid         (All (..), Any (..))
-import GHC.Exts            (build)
 
+import GhcExts (build)
 import WithIndex
 
 -- | Return whether or not any element in a container satisfies a predicate, with access to the index @i@.
