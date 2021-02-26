@@ -22,7 +22,7 @@ import Prelude
        flip, id, seq, snd, ($!), ($), (.), zip)
 
 import Control.Applicative
-       (Applicative (..), Const (..), ZipList (..), (<$>))
+       (Applicative (..), Const (..), ZipList (..), (<$>), liftA2)
 import Control.Applicative.Backwards (Backwards (..))
 import Control.Monad.Trans.Identity  (IdentityT (..))
 import Control.Monad.Trans.Reader    (ReaderT (..))
@@ -285,7 +285,7 @@ instance FoldableWithIndex Int NonEmpty where
   {-# INLINE ifoldMap #-}
 instance TraversableWithIndex Int NonEmpty where
   itraverse f ~(a :| as) =
-    (:|) <$> f 0 a <*> traverse (uncurry' f) (zip [1..] as)
+    liftA2 (:|) (f 0 a) (traverse (uncurry' f) (zip [1..] as))
   {-# INLINE itraverse #-}
 
 -------------------------------------------------------------------------------
@@ -364,7 +364,7 @@ instance (FoldableWithIndex i f, FoldableWithIndex j g) => FoldableWithIndex (Ei
   {-# INLINE ifoldMap #-}
 
 instance (TraversableWithIndex i f, TraversableWithIndex j g) => TraversableWithIndex (Either i j) (Product f g) where
-  itraverse f (Pair a b) = Pair <$> itraverse (f . Left) a <*> itraverse (f . Right) b
+  itraverse f (Pair a b) = liftA2 Pair (itraverse (f . Left) a) (itraverse (f . Right) b)
   {-# INLINE itraverse #-}
 
 -------------------------------------------------------------------------------
@@ -440,7 +440,7 @@ instance FoldableWithIndex [Int] Tree where
   {-# INLINE ifoldMap #-}
 
 instance TraversableWithIndex [Int] Tree where
-  itraverse f (Node a as) = Node <$> f [] a <*> itraverse (\i -> itraverse (f . (:) i)) as
+  itraverse f (Node a as) = liftA2 Node (f [] a) (itraverse (\i -> itraverse (f . (:) i)) as)
   {-# INLINE itraverse #-}
 --
 -- | The position in the 'Seq' is available as the index.
@@ -579,7 +579,7 @@ instance (FoldableWithIndex i f, FoldableWithIndex j g) => FoldableWithIndex (Ei
   {-# INLINE ifoldMap #-}
 
 instance (TraversableWithIndex i f, TraversableWithIndex j g) => TraversableWithIndex (Either i j) (f :*: g) where
-  itraverse q (fa :*: ga) = (:*:) <$> itraverse (q . Left) fa <*> itraverse (q . Right) ga
+  itraverse q (fa :*: ga) = liftA2 (:*:) (itraverse (q . Left) fa) (itraverse (q . Right) ga)
   {-# INLINE itraverse #-}
 
 instance (FunctorWithIndex i f, FunctorWithIndex j g) => FunctorWithIndex (Either i j) (f :+: g) where
@@ -700,6 +700,12 @@ instance Applicative f => Applicative (Indexing f) where
     (j, ff) -> case ma j of
        ~(k, fa) -> (k, ff <*> fa)
   {-# INLINE (<*>) #-}
+#if __GLASGOW_HASKELL__ >=821
+  liftA2 f (Indexing ma) (Indexing mb) = Indexing $ \ i -> case ma i of
+     (j, ja) -> case mb j of
+        ~(k, kb) -> (k, liftA2 f ja kb)
+  {-# INLINE liftA2 #-}
+#endif
 
 -------------------------------------------------------------------------------
 -- Strict curry
