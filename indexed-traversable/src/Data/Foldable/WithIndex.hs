@@ -122,10 +122,10 @@ imapM_ f = liftM skip . getSequenced #. ifoldMap (\i -> Sequenced #. f i)
 -- 'iforM_' ≡ 'flip' 'imapM_'
 -- @
 --
--- When you don't need access to the index then 'Control.Lens.Fold.forMOf_' is more flexible in what it accepts.
+-- When you don't need access to the index then 'Control.Monad.forM_' is more flexible in what it accepts.
 --
 -- @
--- 'Control.Lens.Fold.forMOf_' l a ≡ 'iforMOf' l a '.' 'const'
+-- 'Control.Monad.forM_' a ≡ 'iforM' a '.' 'const'
 -- @
 iforM_ :: (FoldableWithIndex i t, Monad m) => t a -> (i -> a -> m b) -> m ()
 iforM_ = flip imapM_

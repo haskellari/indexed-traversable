@@ -120,6 +120,12 @@ class Foldable f => FoldableWithIndex i f | f -> i where
 #endif
 
   -- | A variant of 'ifoldMap' that is strict in the accumulator.
+  --
+  -- When you don't need access to the index then 'Data.Foldable.foldMap'' is more flexible in what it accepts.
+  --
+  -- @
+  -- 'foldMap'' ≡ 'ifoldMap'' '.' 'const'
+  -- @
   ifoldMap' :: Monoid m => (i -> a -> m) -> f a -> m
   ifoldMap' f = ifoldl' (\i acc a -> mappend acc (f i a)) mempty
   {-# INLINE ifoldMap' #-}
@@ -163,7 +169,7 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   -- When you don't need access to the index then 'Control.Lens.Fold.foldlOf'' is more flexible in what it accepts.
   --
   -- @
-  -- 'Control.Lens.Fold.foldlOf'' l ≡ 'ifoldlOf'' l '.' 'const'
+  -- 'Data.Foldable.foldl'' l ≡ 'ifoldl'' l '.' 'const'
   -- @
   ifoldl' :: (i -> b -> a -> b) -> b -> f a -> b
   ifoldl' f z0 xs = ifoldr f' id xs z0
