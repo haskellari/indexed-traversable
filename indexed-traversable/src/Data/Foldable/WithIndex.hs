@@ -42,7 +42,7 @@ import WithIndex
 -- 'any' ≡ 'iany' '.' 'const'
 -- @
 iany :: FoldableWithIndex i f => (i -> a -> Bool) -> f a -> Bool
-iany f = getAny #. ifoldMap (\i -> Any #. f i)
+iany f = getAny #. ifoldMap (Any #.. f)
 {-# INLINE iany #-}
 
 -- | Return whether or not all elements in a container satisfy a predicate, with access to the index @i@.
@@ -53,7 +53,7 @@ iany f = getAny #. ifoldMap (\i -> Any #. f i)
 -- 'all' ≡ 'iall' '.' 'const'
 -- @
 iall :: FoldableWithIndex i f => (i -> a -> Bool) -> f a -> Bool
-iall f = getAll #. ifoldMap (\i -> All #. f i)
+iall f = getAll #. ifoldMap (All #.. f)
 {-# INLINE iall #-}
 
 -- | Return whether or not none of the elements in a container satisfy a predicate, with access to the index @i@.
@@ -85,7 +85,7 @@ none f = not . any f
 -- 'traverse_' l = 'itraverse' '.' 'const'
 -- @
 itraverse_ :: (FoldableWithIndex i t, Applicative f) => (i -> a -> f b) -> t a -> f ()
-itraverse_ f = void . getTraversed #. ifoldMap (\i -> Traversed #. f i)
+itraverse_ f = void . getTraversed #. ifoldMap (Traversed #.. f)
 {-# INLINE itraverse_ #-}
 
 -- | Traverse elements with access to the index @i@, discarding the results (with the arguments flipped).
@@ -112,7 +112,7 @@ ifor_ = flip itraverse_
 -- 'mapM_' ≡ 'imapM' '.' 'const'
 -- @
 imapM_ :: (FoldableWithIndex i t, Monad m) => (i -> a -> m b) -> t a -> m ()
-imapM_ f = liftM skip . getSequenced #. ifoldMap (\i -> Sequenced #. f i)
+imapM_ f = liftM skip . getSequenced #. ifoldMap (Sequenced #.. f)
 {-# INLINE imapM_ #-}
 
 -- | Run monadic actions for each target of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with access to the index,
