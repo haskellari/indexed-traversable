@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2086,SC2016,SC2046
-# REGENDATA ("0.11.20201212",["bash","cabal.project"])
+# REGENDATA ("0.12",["bash","cabal.project"])
 
 set -o pipefail
 
@@ -444,9 +444,16 @@ fi
 install_cabalplan
 run_cmd cabal-plan --version
 
+# initial cabal.project for sdist
+put_info "initial cabal.project for sdist"
+change_dir "$BUILDDIR"
+run_cmd touch cabal.project
+echo_to cabal.project "packages: $SRCDIR/indexed-traversable"
+echo_if_to $((HCNUMVER >= 70400)) cabal.project "packages: $SRCDIR/indexed-traversable-instances"
+run_cmd cat cabal.project
+
 # sdist
 put_info "sdist"
-change_dir "$SRCDIR"
 run_cmd mkdir -p "$BUILDDIR/sdist"
 run_cmd $CABAL sdist all --output-dir "$BUILDDIR/sdist"
 
@@ -459,14 +466,18 @@ run_cmd find "$BUILDDIR/sdist" -maxdepth 1 -type f -name '*.tar.gz' -exec tar -C
 # generate cabal.project
 put_info "generate cabal.project"
 PKGDIR_indexed_traversable="$(find "$BUILDDIR/unpacked" -maxdepth 1 -type d -regex '.*/indexed-traversable-[0-9.]*')"
+PKGDIR_indexed_traversable_instances="$(find "$BUILDDIR/unpacked" -maxdepth 1 -type d -regex '.*/indexed-traversable-instances-[0-9.]*')"
 run_cmd touch cabal.project
 run_cmd touch cabal.project.local
 echo_to cabal.project "packages: ${PKGDIR_indexed_traversable}"
+echo_if_to $((HCNUMVER >= 70400)) cabal.project "packages: ${PKGDIR_indexed_traversable_instances}"
 echo_if_to $((HCNUMVER >= 80200)) cabal.project "package indexed-traversable"
+echo_if_to $((HCNUMVER >= 80200)) cabal.project "    ghc-options: -Werror=missing-methods"
+echo_if_to $((HCNUMVER >= 80200)) cabal.project "package indexed-traversable-instances"
 echo_if_to $((HCNUMVER >= 80200)) cabal.project "    ghc-options: -Werror=missing-methods"
 cat >> cabal.project <<EOF
 EOF
-$HCPKG list --simple-output --names-only | perl -ne 'for (split /\s+/) { print "constraints: $_ installed\n" unless /^(indexed-traversable)$/; }' >> cabal.project.local
+$HCPKG list --simple-output --names-only | perl -ne 'for (split /\s+/) { print "constraints: $_ installed\n" unless /^(indexed-traversable|indexed-traversable-instances)$/; }' >> cabal.project.local
 run_cmd cat cabal.project
 run_cmd cat cabal.project.local
 
@@ -474,11 +485,6 @@ run_cmd cat cabal.project.local
 put_info "dump install plan"
 run_cmd $CABAL v2-build $ARG_COMPILER $ARG_TESTS $ARG_BENCH --dry-run all
 run_cmd cabal-plan
-
-# install dependencies
-put_info "install dependencies"
-run_cmd $CABAL v2-build $ARG_COMPILER --disable-tests --disable-benchmarks --dependencies-only all
-run_cmd $CABAL v2-build $ARG_COMPILER $ARG_TESTS $ARG_BENCH --dependencies-only all
 
 # build w/o tests
 put_info "build w/o tests"
@@ -490,11 +496,14 @@ run_cmd $CABAL v2-build $ARG_COMPILER $ARG_TESTS $ARG_BENCH all
 
 # tests
 put_info "tests"
+run_cmd_if $((HCNUMVER >= 70400)) $CABAL v2-test $ARG_COMPILER $ARG_TESTS $ARG_BENCH all --test-show-details=direct
 
 # cabal check
 put_info "cabal check"
 change_dir "${PKGDIR_indexed_traversable}"
 run_cmd ${CABAL} -vnormal check
+change_dir_if $((HCNUMVER >= 70400)) ${PKGDIR_indexed_traversable_instances}
+run_cmd_if $((HCNUMVER >= 70400)) ${CABAL} -vnormal check
 change_dir "$BUILDDIR"
 
 # haddock
