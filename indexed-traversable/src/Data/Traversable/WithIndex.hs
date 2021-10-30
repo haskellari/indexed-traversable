@@ -49,7 +49,7 @@ ifor = flip itraverse
 -- 'mapM' ≡ 'imapM' '.' 'const'
 -- @
 imapM :: (TraversableWithIndex i t, Monad m) => (i -> a -> m b) -> t a -> m (t b)
-imapM f = unwrapMonad #. itraverse (\i -> WrapMonad #. f i)
+imapM f = unwrapMonad #. itraverse (WrapMonad #.. f)
 {-# INLINE imapM #-}
 
 -- | Map each element of a structure to a monadic action,

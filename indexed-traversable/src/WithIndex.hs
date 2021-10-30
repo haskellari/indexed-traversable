@@ -94,7 +94,8 @@ class Functor f => FunctorWithIndex i f | f -> i where
 #endif
 
 imapDefault :: TraversableWithIndex i f => (i -> a -> b) -> f a -> f b
-imapDefault f = runIdentity #. itraverse (\i a -> Identity (f i a))
+-- imapDefault f = runIdentity #. itraverse (\i a -> Identity (f i a))
+imapDefault f = runIdentity #. itraverse (Identity #.. f)
 {-# INLINE imapDefault #-}
 
 -------------------------------------------------------------------------------
@@ -132,7 +133,7 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   -- 'Data.Foldable.foldr' ≡ 'ifoldr' '.' 'const'
   -- @
   ifoldr   :: (i -> a -> b -> b) -> b -> f a -> b
-  ifoldr f z t = appEndo (ifoldMap (\i -> Endo #. f i) t) z
+  ifoldr f z t = appEndo (ifoldMap (Endo #.. f) t) z
   {-# INLINE ifoldr #-}
 
   -- | Left-associative fold of an indexed container with access to the index @i@.
@@ -143,7 +144,7 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   -- 'Data.Foldable.foldl' ≡ 'ifoldl' '.' 'const'
   -- @
   ifoldl :: (i -> b -> a -> b) -> b -> f a -> b
-  ifoldl f z t = appEndo (getDual (ifoldMap (\i -> Dual #. Endo #. flip (f i)) t)) z
+  ifoldl f z t = appEndo (getDual (ifoldMap (\ i -> Dual #. Endo #. flip (f i)) t)) z
   {-# INLINE ifoldl #-}
 
   -- | /Strictly/ fold right over the elements of a structure with access to the index @i@.
@@ -171,7 +172,7 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   {-# INLINE ifoldl' #-}
 
 ifoldMapDefault :: (TraversableWithIndex i f, Monoid m) => (i -> a -> m) -> f a -> m
-ifoldMapDefault f = getConst #. itraverse (\i a -> Const (f i a))
+ifoldMapDefault f = getConst #. itraverse (Const #.. f)
 {-# INLINE ifoldMapDefault #-}
 
 -------------------------------------------------------------------------------
@@ -404,11 +405,11 @@ instance FunctorWithIndex i f => FunctorWithIndex i (Reverse f) where
   {-# INLINE imap #-}
 
 instance FoldableWithIndex i f => FoldableWithIndex i (Reverse f) where
-  ifoldMap f = getDual . ifoldMap (\i -> Dual #. f i) . getReverse
+  ifoldMap f = getDual #. ifoldMap (Dual #.. f) . getReverse
   {-# INLINE ifoldMap #-}
 
 instance TraversableWithIndex i f => TraversableWithIndex i (Reverse f) where
-  itraverse f = fmap Reverse . forwards . itraverse (\i -> Backwards . f i) . getReverse
+  itraverse f = fmap Reverse . forwards . itraverse (Backwards #.. f) . getReverse
   {-# INLINE itraverse #-}
 
 -------------------------------------------------------------------------------
@@ -628,12 +629,19 @@ instance TraversableWithIndex Void (K1 i c) where
 #if __GLASGOW_HASKELL__ >=708
 (#.) :: Coercible b c => (b -> c) -> (a -> b) -> (a -> c)
 _ #. x = coerce x
+
+(#..) :: Coercible b c => (b -> c) -> (i -> a -> b) -> (i -> a -> c)
+_ #.. x = coerce x
 #else
 (#.) :: (b -> c) -> (a -> b) -> (a -> c)
 _ #. x = unsafeCoerce x
+
+(#..) :: (b -> c) -> (i -> a -> b) -> (i -> a -> c)
+_ #.. x = unsafeCoerce x
 #endif
-infixr 9 #.
+infixr 9 #., #..
 {-# INLINE (#.) #-}
+{-# INLINE (#..)#-}
 
 skip :: a -> ()
 skip _ = ()
