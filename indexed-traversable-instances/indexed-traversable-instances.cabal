@@ -1,6 +1,6 @@
 cabal-version:      1.12
 name:               indexed-traversable-instances
-version:            0.1
+version:            0.1.1
 build-type:         Simple
 license:            BSD2
 license-file:       LICENSE
@@ -30,7 +30,9 @@ tested-with:
    || ==8.4.4
    || ==8.6.5
    || ==8.8.4
-   || ==8.10.2
+   || ==8.10.7
+   || ==9.0.1
+   || ==9.2.1
 
 source-repository head
   type:     git
@@ -42,8 +44,9 @@ library
   ghc-options:      -Wall
   hs-source-dirs:   src
   build-depends:
-      base                  >=4.5      && <4.16
+      base                  >=4.5      && <4.17
     , indexed-traversable   >=0.1      && <0.2
+    , OneTuple              >=0.3      && <0.4
     , tagged                >=0.8.6    && <0.9
     , unordered-containers  >=0.2.8.0  && <0.3
     , vector                >=0.12.1.2 && <0.13
@@ -72,13 +75,14 @@ test-suite indexed-tests
     , containers
     , indexed-traversable
     , indexed-traversable-instances
+    , OneTuple
     , transformers
     , unordered-containers
     , vector
 
   build-depends:
       QuickCheck            >=2.14.2   && <2.15
-    , quickcheck-instances  >=0.3.25.1 && <0.4
+    , quickcheck-instances  >=0.3.26   && <0.4
     , tasty                 >=1.2.3    && <1.5
     , tasty-quickcheck      >=0.10.1.1 && <0.11
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2086,SC2016,SC2046
-# REGENDATA ("0.12",["bash","cabal.project"])
+# REGENDATA ("0.13.20211030",["bash","cabal.project"])
 
 set -o pipefail
 
@@ -19,7 +19,7 @@ fi
 
 CFG_CABAL_STORE_CACHE=""
 CFG_CABAL_REPO_CACHE=""
-CFG_JOBS="8.10.2 8.8.4 8.6.5 8.4.4 8.2.2 8.0.2 7.10.3 7.8.4 7.6.3 7.4.2 7.2.2 7.0.4"
+CFG_JOBS="9.2.1 9.0.1 8.10.7 8.8.4 8.6.5 8.4.4 8.2.2 8.0.2 7.10.3 7.8.4 7.6.3 7.4.2 7.2.2 7.0.4"
 CFG_CABAL_UPDATE=false
 
 SCRIPT_NAME=$(basename "$0")
@@ -385,7 +385,7 @@ put_info "HCNUMVER: $HCNUMVER"
 
 # Args for shorter/nicer commands
 if [ 1 -ne 0 ] ; then ARG_TESTS=--enable-tests; else ARG_TESTS=--disable-tests; fi
-if [ 1 -ne 0 ] ; then ARG_BENCH=--enable-benchmarks; else ARG_BENCH=--disable-benchmarks; fi
+if [ $((HCNUMVER < 90200)) -ne 0 ] ; then ARG_BENCH=--enable-benchmarks; else ARG_BENCH=--disable-benchmarks; fi
 ARG_COMPILER="--ghc --with-compiler=$HC"
 
 put_info "tests/benchmarks: $ARG_TESTS $ARG_BENCH"
