@@ -7,6 +7,7 @@ import Control.Applicative   (Const (..))
 import Data.Foldable         (toList)
 import Data.Functor.Identity (Identity (..))
 import Data.Monoid           (Endo (..), Monoid (..))
+import Data.Tuple.Solo       (Solo (Solo))
 import Test.QuickCheck
        (Arbitrary, CoArbitrary, Fun, Function, Property, applyFun, (===))
 import Test.QuickCheck.Poly  (A, B)
@@ -52,6 +53,7 @@ main = defaultMain $ testGroup "tests"
     , battery $ mkT (HM.keys :: forall a. HM.HashMap I a -> [I])
     , battery $ mkT (zipWith const [0 ..] . toList :: forall a. Seq.Seq a -> [Int])
     , battery $ mkT $ zipWith const [0 ..] . V.toList
+    , battery $ mkT $ \(Solo _) -> [()]
 #if MIN_VERSION_containers(0,6,3)
     , battery $ mkT IntMap.keys
 #endif

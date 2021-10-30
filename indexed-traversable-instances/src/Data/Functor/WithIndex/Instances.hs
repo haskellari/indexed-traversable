@@ -21,6 +21,7 @@ import Prelude (Int, flip, (.))
 import Control.Applicative ((<$>))
 import Data.HashMap.Lazy   (HashMap)
 import Data.Tagged         (Tagged (..))
+import Data.Tuple.Solo     (Solo (Solo))
 import Data.Vector         (Vector)
 
 import qualified Data.HashMap.Lazy as HM
@@ -81,4 +82,20 @@ instance FoldableWithIndex k (HashMap k) where
   {-# INLINE ifoldl' #-}
 instance TraversableWithIndex k (HashMap k) where
   itraverse = HM.traverseWithKey
+  {-# INLINE itraverse #-}
+
+-------------------------------------------------------------------------------
+-- OneTuple
+-------------------------------------------------------------------------------
+
+instance FunctorWithIndex () Solo where
+  imap f (Solo a) = Solo (f () a)
+  {-# INLINE imap #-}
+
+instance FoldableWithIndex () Solo where
+  ifoldMap f (Solo a) = f () a
+  {-# INLINE ifoldMap #-}
+
+instance TraversableWithIndex () Solo where
+  itraverse f (Solo a) = Solo <$> f () a
   {-# INLINE itraverse #-}

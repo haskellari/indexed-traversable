@@ -1,3 +1,4 @@
 branches:             master
 install-dependencies: False
 jobs-selection:       any
+benchmarks:           <9.2
