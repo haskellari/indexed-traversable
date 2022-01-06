@@ -24,6 +24,7 @@ import Prelude
 import Control.Applicative
        (Applicative (..), Const (..), ZipList (..), (<$>), liftA2)
 import Control.Applicative.Backwards (Backwards (..))
+import Control.Arrow                 (Kleisli (..))
 import Control.Monad.Trans.Identity  (IdentityT (..))
 import Control.Monad.Trans.Reader    (ReaderT (..))
 import Data.Array                    (Array)
@@ -280,6 +281,10 @@ instance TraversableWithIndex Int ZipList where
   itraverse f (ZipList xs) = ZipList <$> itraverse f xs
   {-# INLINE itraverse #-}
 
+instance Functor m => FunctorWithIndex a (Kleisli m a) where
+  imap f (Kleisli p) = Kleisli (\x -> f x <$> p x)
+  {-# INLINE imap #-}
+
 -------------------------------------------------------------------------------
 -- (former) semigroups
 -------------------------------------------------------------------------------
@@ -296,7 +301,7 @@ instance TraversableWithIndex Int NonEmpty where
   {-# INLINE itraverse #-}
 
 -------------------------------------------------------------------------------
--- Functors (formely) from transformers
+-- Functors (formerly) from transformers
 -------------------------------------------------------------------------------
 
 instance FunctorWithIndex () Identity where
