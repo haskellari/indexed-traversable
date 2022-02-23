@@ -670,7 +670,7 @@ instance Applicative f => Semigroup (Traversed a f) where
 instance Applicative f => Monoid (Traversed a f) where
   mempty = Traversed (pure (error "Traversed: value used"))
   {-# INLINE mempty #-}
-  Traversed ma `mappend` Traversed mb = Traversed (ma *> mb)
+  mappend = (<>)
   {-# INLINE mappend #-}
 
 ------------------------------------------------------------------------------
@@ -691,7 +691,7 @@ instance Monad m => Semigroup (Sequenced a m) where
 instance Monad m => Monoid (Sequenced a m) where
   mempty = Sequenced (return (error "Sequenced: value used"))
   {-# INLINE mempty #-}
-  Sequenced ma `mappend` Sequenced mb = Sequenced (ma >> mb)
+  mappend = (<>)
   {-# INLINE mappend #-}
 
 ------------------------------------------------------------------------------
