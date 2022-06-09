@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2086,SC2016,SC2046
-# REGENDATA ("0.13.20211030",["bash","cabal.project"])
+# REGENDATA ("0.14.2",["bash","cabal.project"])
 
 set -o pipefail
 
