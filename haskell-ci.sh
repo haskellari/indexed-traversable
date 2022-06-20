@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2086,SC2016,SC2046
-# REGENDATA ("0.13.20211030",["bash","cabal.project"])
+# REGENDATA ("0.15.20220609",["bash","cabal.project"])
 
 set -o pipefail
 
@@ -508,7 +508,7 @@ change_dir "$BUILDDIR"
 
 # haddock
 put_info "haddock"
-run_cmd $CABAL v2-haddock $ARG_COMPILER --with-haddock $HADDOCK $ARG_TESTS $ARG_BENCH all
+run_cmd $CABAL v2-haddock --haddock-all $ARG_COMPILER --with-haddock $HADDOCK $ARG_TESTS $ARG_BENCH all
 
 # unconstrained build
 put_info "unconstrained build"
