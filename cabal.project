@@ -1,4 +1,5 @@
 packages:   indexed-traversable
 packages:   indexed-traversable-instances
+packages:   indexed-traversable-benchmarks
 tests:      True
 benchmarks: True
