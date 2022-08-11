@@ -1,0 +1,67 @@
+cabal-version: 1.12
+name:          indexed-traversable-benchmarks
+version:       0.1.1.1
+build-type:    Simple
+license:       BSD2
+license-file:  LICENSE
+category:      Data
+maintainer:    Oleg Grenrus <oleg.grenrus@iki.fi>
+author:        Edward Kmett
+synopsis:      Benchmark suite for indexed-traversable
+description:   Benchmark suite for indexed-traversable.
+tested-with:
+  GHC ==7.4.2
+   || ==7.6.3
+   || ==7.8.4
+   || ==7.10.3
+   || ==8.0.2
+   || ==8.2.2
+   || ==8.4.4
+   || ==8.6.5
+   || ==8.8.4
+   || ==8.10.7
+   || ==9.0.2
+   || ==9.2.4
+   || ==9.4.1
+
+source-repository head
+  type:     git
+  location: https://github.com/haskellari/indexed-traversable
+  subdir:   indexed-traversable-benchmarks
+
+library
+  default-language: Haskell2010
+  ghc-options:      -Wall
+  build-depends:    base <5
+
+benchmark folds
+  type:             exitcode-stdio-1.0
+  main-is:          folds.hs
+  default-language: Haskell2010
+  hs-source-dirs:   bench
+  ghc-options:      -Wall
+  build-depends:
+      base
+    , containers
+    , indexed-traversable
+    , indexed-traversable-instances
+    , unordered-containers
+    , vector
+
+  build-depends:    criterion >=1.5.9.0 && <1.6
+
+benchmark traversals
+  type:             exitcode-stdio-1.0
+  main-is:          traversals.hs
+  default-language: Haskell2010
+  hs-source-dirs:   bench
+  ghc-options:      -Wall
+  build-depends:
+      base
+    , containers
+    , indexed-traversable
+    , indexed-traversable-instances
+    , unordered-containers
+    , vector
+
+  build-depends:    criterion >=1.5.9.0 && <1.6
