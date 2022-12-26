@@ -6,6 +6,8 @@
 {-# LANGUAGE GADTs                  #-}
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
+{-# LANGUAGE MagicHash              #-}
+{-# LANGUAGE ScopedTypeVariables    #-}
 
 #if __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Trustworthy            #-}
@@ -19,7 +21,7 @@ module WithIndex where
 
 import Prelude
        (Either (..), Functor (..), Int, Maybe (..), Monad (..), Num (..), error,
-       flip, id, seq, snd, ($!), ($), (.), zip)
+       flip, id, seq, snd, ($!), ($), (.))
 
 import Control.Applicative
        (Applicative (..), Const (..), ZipList (..), (<$>), liftA2)
@@ -45,6 +47,7 @@ import Data.Sequence                 (Seq)
 import Data.Traversable              (Traversable (..))
 import Data.Tree                     (Tree (..))
 import Data.Void                     (Void)
+import GHC.Exts                      (Int (..), Int#, (+#))
 
 #if __GLASGOW_HASKELL__ >= 702
 import GHC.Generics
@@ -263,8 +266,29 @@ instance FoldableWithIndex Int [] where
     go !n (x:xs) = f n x (go (n + 1) xs)
   {-# INLINE ifoldr #-}
 instance TraversableWithIndex Int [] where
-  itraverse f = traverse (uncurry' f) . zip [0..]
+  itraverse f = itraverseListStarting 0 f
   {-# INLINE itraverse #-}
+
+-- | Traverse a list with the given starting index. We used to define
+-- traversals for @[]@ and 'NonEmpty' using 'Prelude.zip'.  Unfortunately, this
+-- could sometimes fail to fuse (at least for the @[]@ case), leading to
+-- @[0..]@ being allocated as a CAF and walked on each traversal, which is both
+-- a space leak and slow. See https://gitlab.haskell.org/ghc/ghc/-/issues/22673
+-- Using a manual counter puts a stop to that, and using 'foldr' gives us a
+-- chance of fusing with the argument. I didn't see similarly disastrous
+-- behavior with 'NonEmpty', but defining its traversal this way produces a
+-- rather more readable unfolding that I'm more confident won't go wrong
+-- somehow.
+--
+-- Why do we unbox the counter by hand? GHC /can/ do that itself, but for some
+-- reason it only happens with @-O2@, and we use the standard @-O1@.
+itraverseListStarting :: forall f a b. Applicative f => Int -> (Int -> a -> f b) -> [a] -> f [b]
+itraverseListStarting (I# i0) f = \xs -> foldr go stop xs i0
+  where
+    go x r !i = liftA2 (:) (f (I# i) x) (r (i +# 1#))
+    stop :: Int# -> f [b]
+    stop !_i = pure []
+{-# INLINE itraverseListStarting #-}
 
 -- TODO: we could experiment with streaming framework
 -- imapListFB f xs = build (\c n -> ifoldr (\i a -> c (f i a)) n xs)
@@ -292,7 +316,7 @@ instance FoldableWithIndex Int NonEmpty where
   {-# INLINE ifoldMap #-}
 instance TraversableWithIndex Int NonEmpty where
   itraverse f ~(a :| as) =
-    liftA2 (:|) (f 0 a) (traverse (uncurry' f) (zip [1..] as))
+    liftA2 (:|) (f 0 a) (itraverseListStarting 1 f as)
   {-# INLINE itraverse #-}
 
 -------------------------------------------------------------------------------
