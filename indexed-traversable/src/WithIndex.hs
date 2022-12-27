@@ -25,7 +25,7 @@ module WithIndex where
 
 import Prelude
        (Either (..), Functor (..), Int, Maybe (..), Monad (..), Num (..), error,
-       flip, id, seq, snd, ($!), ($), (.), zip)
+       flip, id, seq, snd, ($!), ($), (.))
 
 import Control.Applicative
        (Applicative (..), Const (..), ZipList (..), (<$>), liftA2)
@@ -265,8 +265,14 @@ instance FoldableWithIndex Int [] where
     go !n (x:xs) = f n x (go (n + 1) xs)
   {-# INLINE ifoldr #-}
 instance TraversableWithIndex Int [] where
-  itraverse f = traverse (uncurry' f) . zip [0..]
+  itraverse = itraverseListOff 0
   {-# INLINE itraverse #-}
+
+-- traverse (uncurry' f) . zip [0..] seems to not work well:
+-- https://gitlab.haskell.org/ghc/ghc/-/issues/22673
+itraverseListOff :: Applicative f => Int -> (Int -> a -> f b) -> [a] -> f [b]
+itraverseListOff !_   _ []     = pure []
+itraverseListOff !off f (x:xs) = liftA2 (:) (f off x) (itraverseListOff (off + 1) f xs)
 
 -- TODO: we could experiment with streaming framework
 -- imapListFB f xs = build (\c n -> ifoldr (\i a -> c (f i a)) n xs)
@@ -294,7 +300,7 @@ instance FoldableWithIndex Int NonEmpty where
   {-# INLINE ifoldMap #-}
 instance TraversableWithIndex Int NonEmpty where
   itraverse f ~(a :| as) =
-    liftA2 (:|) (f 0 a) (traverse (uncurry' f) (zip [1..] as))
+    liftA2 (:|) (f 0 a) (itraverseListOff 1 f as)
   {-# INLINE itraverse #-}
 
 -------------------------------------------------------------------------------
