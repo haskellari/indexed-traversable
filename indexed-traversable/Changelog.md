@@ -1,3 +1,8 @@
+# 0.1.3 [2022-12-28]
+
+- TraversableWithIndex [] doesn't use `zip [0..]` idiom anymore.
+  https://gitlab.haskell.org/ghc/ghc/-/issues/22673
+
 # 0.1.2 [2021-10-30]
 
 - Changed `(<$>)` + `(<*>)` to `liftA2` to potentially avoid extra `fmap`.
