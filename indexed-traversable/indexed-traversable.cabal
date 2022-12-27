@@ -61,7 +61,7 @@ library
   hs-source-dirs:   src
   other-modules:
     CoerceCompat
-    GhcExts
+    GhcList
     WithIndex
 
   exposed-modules:

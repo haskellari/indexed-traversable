@@ -32,7 +32,7 @@ import Data.Foldable       (Foldable, any)
 import Data.Monoid         (All (..), Any (..))
 
 import CoerceCompat ((#.), (#..))
-import GhcExts      (build)
+import GhcList      (build)
 
 import WithIndex
 
