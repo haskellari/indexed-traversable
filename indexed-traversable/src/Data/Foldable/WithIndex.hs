@@ -31,7 +31,9 @@ import Control.Monad       (liftM, void)
 import Data.Foldable       (Foldable, any)
 import Data.Monoid         (All (..), Any (..))
 
-import GhcExts (build)
+import CoerceCompat ((#.), (#..))
+import GhcExts      (build)
+
 import WithIndex
 
 -- | Return whether or not any element in a container satisfies a predicate, with access to the index @i@.

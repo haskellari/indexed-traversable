@@ -28,6 +28,7 @@ import Data.Tuple                    (swap)
 import qualified Control.Monad.Trans.State.Lazy as Lazy
 
 import WithIndex
+import CoerceCompat
 
 -- | Traverse with an index (and the arguments flipped).
 --
