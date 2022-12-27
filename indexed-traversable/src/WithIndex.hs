@@ -7,8 +7,14 @@
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
+{-# LANGUAGE CPP         #-}
+#if __GLASGOW_HASKELL__ >= 704
+{-# LANGUAGE Safe        #-}
+#elif __GLASGOW_HASKELL__ >= 702
+{-# LANGUAGE Trustworthy #-}
+#endif
+
 #if __GLASGOW_HASKELL__ >= 702
-{-# LANGUAGE Trustworthy            #-}
 {-# LANGUAGE DefaultSignatures      #-}
 #endif
 
@@ -65,11 +71,7 @@ import qualified Data.Sequence as Seq
 import Data.Orphans ()
 #endif
 
-#if __GLASGOW_HASKELL__ >=708
-import Data.Coerce (Coercible, coerce)
-#else
-import Unsafe.Coerce (unsafeCoerce)
-#endif
+import CoerceCompat
 
 -------------------------------------------------------------------------------
 -- FunctorWithIndex
@@ -631,23 +633,6 @@ instance TraversableWithIndex Void (K1 i c) where
 -------------------------------------------------------------------------------
 -- Misc.
 -------------------------------------------------------------------------------
-
-#if __GLASGOW_HASKELL__ >=708
-(#.) :: Coercible b c => (b -> c) -> (a -> b) -> (a -> c)
-_ #. x = coerce x
-
-(#..) :: Coercible b c => (b -> c) -> (i -> a -> b) -> (i -> a -> c)
-_ #.. x = coerce x
-#else
-(#.) :: (b -> c) -> (a -> b) -> (a -> c)
-_ #. x = unsafeCoerce x
-
-(#..) :: (b -> c) -> (i -> a -> b) -> (i -> a -> c)
-_ #.. x = unsafeCoerce x
-#endif
-infixr 9 #., #..
-{-# INLINE (#.) #-}
-{-# INLINE (#..)#-}
 
 skip :: a -> ()
 skip _ = ()
