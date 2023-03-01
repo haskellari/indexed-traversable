@@ -7,12 +7,18 @@ import Control.Applicative   (Const (..))
 import Data.Foldable         (toList)
 import Data.Functor.Identity (Identity (..))
 import Data.Monoid           (Endo (..), Monoid (..))
-import Data.Tuple.Solo       (Solo (Solo))
 import Test.QuickCheck
        (Arbitrary, CoArbitrary, Fun, Function, Property, applyFun, (===))
 import Test.QuickCheck.Poly  (A, B)
 import Test.Tasty            (TestTree, defaultMain, testGroup)
 import Test.Tasty.QuickCheck (testProperty)
+
+#if MIN_VERSION_OneTuple(0,4,0)
+import Data.Tuple.Solo     (Solo (MkSolo))
+#else
+import Data.Tuple.Solo     (Solo (Solo))
+#define MkSolo Solo
+#endif
 
 import qualified Data.HashMap.Lazy as HM
 import qualified Data.Map          as Map
@@ -53,7 +59,7 @@ main = defaultMain $ testGroup "tests"
     , battery $ mkT (HM.keys :: forall a. HM.HashMap I a -> [I])
     , battery $ mkT (zipWith const [0 ..] . toList :: forall a. Seq.Seq a -> [Int])
     , battery $ mkT $ zipWith const [0 ..] . V.toList
-    , battery $ mkT $ \(Solo _) -> [()]
+    , battery $ mkT $ \(MkSolo _) -> [()]
 #if MIN_VERSION_containers(0,6,3)
     , battery $ mkT IntMap.keys
 #endif
