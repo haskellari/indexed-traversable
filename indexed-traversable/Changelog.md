@@ -1,4 +1,4 @@
-# 0.1.3 [2022-12-28]
+# 0.1.2.1 [2022-12-28]
 
 - TraversableWithIndex [] doesn't use `zip [0..]` idiom anymore.
   https://gitlab.haskell.org/ghc/ghc/-/issues/22673
