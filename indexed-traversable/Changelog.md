@@ -1,6 +1,10 @@
-# 0.1.2.1 [2022-12-28]
+# 0.1.3 [2023-10-04]
 
-- TraversableWithIndex [] doesn't use `zip [0..]` idiom anymore.
+- Add `Foldable1WithIndex1` type-class, an indexed version of `Foldable1`.
+
+# 0.1.2.1 [2023-03-12]
+
+- `TraversableWithIndex []` doesn't use the `zip [0..]` idiom anymore.
   https://gitlab.haskell.org/ghc/ghc/-/issues/22673
 
 # 0.1.2 [2021-10-30]
