@@ -34,6 +34,7 @@ import Control.Monad.Trans.Identity  (IdentityT (..))
 import Control.Monad.Trans.Reader    (ReaderT (..))
 import Data.Array                    (Array)
 import Data.Foldable                 (Foldable (..))
+import Data.Foldable1                (Foldable1 (..))
 import Data.Functor.Compose          (Compose (..))
 import Data.Functor.Constant         (Constant (..))
 import Data.Functor.Identity         (Identity (..))
@@ -184,6 +185,62 @@ ifoldMapDefault f = getConst #. itraverse (Const #.. f)
 {-# INLINE ifoldMapDefault #-}
 
 -------------------------------------------------------------------------------
+-- Foldable1WithIndex
+-------------------------------------------------------------------------------
+
+-- | A non-empty container that supports folding with an additional index.
+class (Foldable1 f, FoldableWithIndex i f) => Foldable1WithIndex i f | f -> i where
+  -- | Map each element of the structure to a semigroup, and combine the results.
+  ifoldMap1 :: Semigroup m => (i -> a -> m) -> f a -> m
+  ifoldMap1 f = ifoldrMap1 f (\i a m -> f i a <> m)
+
+  -- | A variant of 'ifoldMap1' that is strict in the accumulator.
+  ifoldMap1' :: Semigroup m => (i -> a -> m) -> f a -> m
+  ifoldMap1' f = ifoldlMap1' f (\i m a -> m <> f i a)
+
+  -- | Generalized 'ifoldr1'.
+  ifoldrMap1 :: (i -> a -> b) -> (i -> a -> b -> b) -> f a -> b
+  ifoldrMap1 f g xs =
+      appFromMaybe (ifoldMap1 (FromMaybe #.. h) xs) Nothing
+    where
+      h i a Nothing  = f i a
+      h i a (Just b) = g i a b
+
+  -- | Generalized 'ifoldl1''.
+  ifoldlMap1' :: (i -> a -> b) -> (i -> b -> a -> b) -> f a -> b
+  ifoldlMap1' f g xs =
+      ifoldrMap1 f' g' xs SNothing
+    where
+      -- f' :: i -> a -> SMaybe b -> b
+      f' i a SNothing  = f i a
+      f' i a (SJust b) = g i b a
+
+      -- g' :: i -> a -> (SMaybe b -> b) -> SMaybe b -> b
+      g' i a x SNothing  = x $! SJust (f i a)
+      g' i a x (SJust b) = x $! SJust (g i b a)
+
+  -- | Generalized 'ifoldl1'.
+  ifoldlMap1 :: (i -> a -> b) -> (i -> b -> a -> b) -> f a -> b
+  ifoldlMap1 f g xs =
+      appFromMaybe (getDual (ifoldMap1 ((Dual . FromMaybe) #.. h) xs)) Nothing
+    where
+      h i a Nothing  = f i a
+      h i a (Just b) = g i b a
+
+  -- | Generalized 'ifoldr1''.
+  ifoldrMap1' :: (i -> a -> b) -> (i -> a -> b -> b) -> f a -> b
+  ifoldrMap1' f g xs =
+      ifoldlMap1 f' g' xs SNothing
+    where
+      f' i a SNothing  = f i a
+      f' i a (SJust b) = g i a b
+
+      g' i bb a SNothing  = bb $! SJust (f i a)
+      g' i bb a (SJust b) = bb $! SJust (g i a b)
+
+  {-# MINIMAL ifoldMap1 | ifoldrMap1 #-}
+
+-------------------------------------------------------------------------------
 -- TraversableWithIndex
 -------------------------------------------------------------------------------
 
@@ -258,15 +315,25 @@ instance FunctorWithIndex Int [] where
     go !n (x:xs) = f n x : go (n + 1) xs
   {-# INLINE imap #-}
 instance FoldableWithIndex Int [] where
-  ifoldMap = ifoldMapDefault
+  ifoldMap = ifoldMapListOff 0
   {-# INLINE ifoldMap #-}
-  ifoldr f z = go 0 where
-    go !_ []     = z
-    go !n (x:xs) = f n x (go (n + 1) xs)
+  ifoldr = ifoldrListOff 0
   {-# INLINE ifoldr #-}
+  ifoldl' = ifoldl'ListOff 0
 instance TraversableWithIndex Int [] where
   itraverse = itraverseListOff 0
   {-# INLINE itraverse #-}
+
+ifoldMapListOff :: Monoid m => Int -> (Int -> a -> m) -> [a] -> m
+ifoldMapListOff off f = ifoldrListOff off (\i x acc -> mappend (f i x) acc) mempty
+
+ifoldrListOff :: Int -> (Int -> a -> b -> b) -> b -> [a] -> b
+ifoldrListOff !_   _ z []     = z
+ifoldrListOff !off f z (x:xs) = f off x (ifoldrListOff (off + 1) f z xs)
+
+ifoldl'ListOff :: Int -> (Int -> b -> a -> b) -> b -> [a] -> b
+ifoldl'ListOff !_   _ !z []     = z
+ifoldl'ListOff !off f !z (x:xs) = ifoldl'ListOff (off + 1) f (f off z x) xs
 
 -- traverse (uncurry' f) . zip [0..] seems to not work well:
 -- https://gitlab.haskell.org/ghc/ghc/-/issues/22673
@@ -296,8 +363,19 @@ instance FunctorWithIndex Int NonEmpty where
   imap = imapDefault
   {-# INLINE imap #-}
 instance FoldableWithIndex Int NonEmpty where
-  ifoldMap = ifoldMapDefault
+  ifoldMap f (x :| xs) = mappend (f 0 x) (ifoldMapListOff 1 f xs)
+  ifoldr f z (x :| xs) = f 0 x (ifoldrListOff 1 f z xs)
+  ifoldl' f z (x :| xs) = ifoldl'ListOff 1 f (f 0 z x) xs
   {-# INLINE ifoldMap #-}
+instance Foldable1WithIndex Int NonEmpty where
+  ifoldMap1 f (x :| xs) = go 1 (f 0 x) xs where
+        go _ y [] = y
+        go i y (z : zs) = y <> go (i + 1) (f i z) zs
+  ifoldMap1' f (x :| xs) = ifoldl'ListOff 1 (\i m y -> m <> f i y) (f 0 x) xs
+  ifoldrMap1 f g (x :| xs) = go 0 x xs where
+    go i y [] = f i y
+    go i y (z : zs) = g i y (go (i + 1) z zs)
+  ifoldlMap1' f g (x :| xs) = ifoldl'ListOff 1 g (f 0 x) xs
 instance TraversableWithIndex Int NonEmpty where
   itraverse f ~(a :| as) =
     liftA2 (:|) (f 0 a) (itraverseListOff 1 f as)
@@ -484,7 +562,7 @@ instance TraversableWithIndex Int Seq where
   {-# INLINE itraverse #-}
 
 instance FunctorWithIndex Int IntMap where
-  imap = IntMap.mapWithKey 
+  imap = IntMap.mapWithKey
   {-# INLINE imap #-}
 
 instance FoldableWithIndex Int IntMap where
@@ -512,7 +590,7 @@ instance TraversableWithIndex Int IntMap where
 instance FunctorWithIndex k (Map k) where
   imap = Map.mapWithKey
   {-# INLINE imap #-}
-  
+
 instance FoldableWithIndex k (Map k) where
 #if MIN_VERSION_containers(0,5,4)
   ifoldMap = Map.foldMapWithKey
@@ -719,3 +797,16 @@ instance Applicative f => Applicative (Indexing f) where
 uncurry' :: (a -> b -> c) -> (a, b) -> c
 uncurry' f (a, b) = f a b
 {-# INLINE uncurry' #-}
+
+-------------------------------------------------------------------------------
+-- FromMaybe & SMaybe
+-------------------------------------------------------------------------------
+
+-- | Used for foldrMap1 and foldlMap1 definitions
+newtype FromMaybe b = FromMaybe { appFromMaybe :: Maybe b -> b }
+
+instance Semigroup (FromMaybe b) where
+    FromMaybe f <> FromMaybe g = FromMaybe (f . Just . g)
+
+-- | Strict maybe, used to implement default foldlMap1' etc.
+data SMaybe a = SNothing | SJust !a
