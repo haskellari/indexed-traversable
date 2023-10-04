@@ -3,3 +3,14 @@ packages:   indexed-traversable-instances
 packages:   indexed-traversable-benchmarks
 tests:      True
 benchmarks: True
+
+-- TODO
+allow-newer: quickcheck-instances:base
+allow-newer: quickcheck-instances:bytestring
+allow-newer: quickcheck-instances:text
+allow-newer: quickcheck-instances:these
+allow-newer: these:base
+allow-newer: these:deepseq
+allow-newer: strict:bytestring
+allow-newer: strict:text
+allow-newer: strict:deepseq
