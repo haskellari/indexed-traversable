@@ -8,9 +8,9 @@
 #
 # For more information, see https://github.com/haskell-CI/haskell-ci
 #
-# version: 0.17.20231004
+# version: 0.17.20231010
 #
-# REGENDATA ("0.17.20231004",["--config=cabal.haskell-ci","github","cabal.project"])
+# REGENDATA ("0.17.20231010",["--config=cabal.haskell-ci","github","cabal.project"])
 #
 name: Haskell-CI
 on:
@@ -32,9 +32,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - compiler: ghc-9.8.0.20230929
+          - compiler: ghc-9.8.1
             compilerKind: ghc
-            compilerVersion: 9.8.0.20230929
+            compilerVersion: 9.8.1
             setup-method: ghcup
             allow-failure: false
           - compiler: ghc-9.6.3
@@ -127,7 +127,6 @@ jobs:
             mkdir -p "$HOME/.ghcup/bin"
             curl -sL https://downloads.haskell.org/ghcup/0.1.19.5/x86_64-linux-ghcup-0.1.19.5 > "$HOME/.ghcup/bin/ghcup"
             chmod a+x "$HOME/.ghcup/bin/ghcup"
-            "$HOME/.ghcup/bin/ghcup" config add-release-channel https://raw.githubusercontent.com/haskell/ghcup-metadata/master/ghcup-prereleases-0.0.7.yaml;
             "$HOME/.ghcup/bin/ghcup" install ghc "$HCVER" || (cat "$HOME"/.ghcup/logs/*.* && false)
             "$HOME/.ghcup/bin/ghcup" install cabal 3.10.1.0 || (cat "$HOME"/.ghcup/logs/*.* && false)
           else
@@ -137,7 +136,6 @@ jobs:
             mkdir -p "$HOME/.ghcup/bin"
             curl -sL https://downloads.haskell.org/ghcup/0.1.19.5/x86_64-linux-ghcup-0.1.19.5 > "$HOME/.ghcup/bin/ghcup"
             chmod a+x "$HOME/.ghcup/bin/ghcup"
-            "$HOME/.ghcup/bin/ghcup" config add-release-channel https://raw.githubusercontent.com/haskell/ghcup-metadata/master/ghcup-prereleases-0.0.7.yaml;
             "$HOME/.ghcup/bin/ghcup" install cabal 3.10.1.0 || (cat "$HOME"/.ghcup/logs/*.* && false)
           fi
         env:
@@ -231,7 +229,7 @@ jobs:
           touch cabal.project
           echo "packages: $GITHUB_WORKSPACE/source/indexed-traversable" >> cabal.project
           if [ $((HCNUMVER >= 70400)) -ne 0 ] ; then echo "packages: $GITHUB_WORKSPACE/source/indexed-traversable-instances" >> cabal.project ; fi
-          if [ $((HCNUMVER >= 70400 && HCNUMVER < 90800)) -ne 0 ] ; then echo "packages: $GITHUB_WORKSPACE/source/indexed-traversable-benchmarks" >> cabal.project ; fi
+          if [ $((HCNUMVER >= 70400)) -ne 0 ] ; then echo "packages: $GITHUB_WORKSPACE/source/indexed-traversable-benchmarks" >> cabal.project ; fi
           cat cabal.project
       - name: sdist
         run: |
@@ -254,23 +252,14 @@ jobs:
           touch cabal.project.local
           echo "packages: ${PKGDIR_indexed_traversable}" >> cabal.project
           if [ $((HCNUMVER >= 70400)) -ne 0 ] ; then echo "packages: ${PKGDIR_indexed_traversable_instances}" >> cabal.project ; fi
-          if [ $((HCNUMVER >= 70400 && HCNUMVER < 90800)) -ne 0 ] ; then echo "packages: ${PKGDIR_indexed_traversable_benchmarks}" >> cabal.project ; fi
+          if [ $((HCNUMVER >= 70400)) -ne 0 ] ; then echo "packages: ${PKGDIR_indexed_traversable_benchmarks}" >> cabal.project ; fi
           if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "package indexed-traversable" >> cabal.project ; fi
           if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "    ghc-options: -Werror=missing-methods" >> cabal.project ; fi
           if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "package indexed-traversable-instances" >> cabal.project ; fi
           if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "    ghc-options: -Werror=missing-methods" >> cabal.project ; fi
-          if [ $((HCNUMVER >= 80200 && HCNUMVER < 90800)) -ne 0 ] ; then echo "package indexed-traversable-benchmarks" >> cabal.project ; fi
-          if [ $((HCNUMVER >= 80200 && HCNUMVER < 90800)) -ne 0 ] ; then echo "    ghc-options: -Werror=missing-methods" >> cabal.project ; fi
+          if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "package indexed-traversable-benchmarks" >> cabal.project ; fi
+          if [ $((HCNUMVER >= 80200)) -ne 0 ] ; then echo "    ghc-options: -Werror=missing-methods" >> cabal.project ; fi
           cat >> cabal.project <<EOF
-          allow-newer: quickcheck-instances:base
-          allow-newer: quickcheck-instances:bytestring
-          allow-newer: quickcheck-instances:text
-          allow-newer: quickcheck-instances:these
-          allow-newer: these:base
-          allow-newer: these:deepseq
-          allow-newer: strict:bytestring
-          allow-newer: strict:text
-          allow-newer: strict:deepseq
           EOF
           $HCPKG list --simple-output --names-only | perl -ne 'for (split /\s+/) { print "constraints: $_ installed\n" unless /^(indexed-traversable|indexed-traversable-benchmarks|indexed-traversable-instances)$/; }' >> cabal.project.local
           cat cabal.project
@@ -300,8 +289,8 @@ jobs:
           ${CABAL} -vnormal check
           if [ $((HCNUMVER >= 70400)) -ne 0 ] ; then cd ${PKGDIR_indexed_traversable_instances} || false ; fi
           if [ $((HCNUMVER >= 70400)) -ne 0 ] ; then ${CABAL} -vnormal check ; fi
-          if [ $((HCNUMVER >= 70400 && HCNUMVER < 90800)) -ne 0 ] ; then cd ${PKGDIR_indexed_traversable_benchmarks} || false ; fi
-          if [ $((HCNUMVER >= 70400 && HCNUMVER < 90800)) -ne 0 ] ; then ${CABAL} -vnormal check ; fi
+          if [ $((HCNUMVER >= 70400)) -ne 0 ] ; then cd ${PKGDIR_indexed_traversable_benchmarks} || false ; fi
+          if [ $((HCNUMVER >= 70400)) -ne 0 ] ; then ${CABAL} -vnormal check ; fi
       - name: haddock
         run: |
           $CABAL v2-haddock --disable-documentation --haddock-all $ARG_COMPILER --with-haddock $HADDOCK $ARG_TESTS $ARG_BENCH all

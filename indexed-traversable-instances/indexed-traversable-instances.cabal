@@ -87,5 +87,5 @@ test-suite indexed-tests
   build-depends:
       QuickCheck            >=2.14.2   && <2.15
     , quickcheck-instances  >=0.3.29   && <0.4
-    , tasty                 >=1.2.3    && <1.5
+    , tasty                 >=1.2.3    && <1.6
     , tasty-quickcheck      >=0.10.1.1 && <0.11

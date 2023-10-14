@@ -24,6 +24,7 @@ tested-with:
    || ==9.2.8
    || ==9.4.7
    || ==9.6.3
+   || ==9.8.1
 
 source-repository head
   type:     git
@@ -49,7 +50,7 @@ benchmark folds
     , unordered-containers
     , vector
 
-  build-depends:    criterion >=1.5.9.0 && <1.6
+  build-depends:    criterion >=1.5.9.0 && <1.7
 
 benchmark traversals
   type:             exitcode-stdio-1.0
@@ -65,4 +66,4 @@ benchmark traversals
     , unordered-containers
     , vector
 
-  build-depends:    criterion >=1.5.9.0 && <1.6
+  build-depends:    criterion >=1.5.9.0 && <1.7
