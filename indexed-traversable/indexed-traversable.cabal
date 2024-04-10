@@ -74,8 +74,8 @@ library
 
   build-depends:
       array         >=0.3.0.2 && <0.6
-    , base          >=4.3     && <4.20
-    , containers    >=0.4.0.0 && <0.7
+    , base          >=4.3     && <4.21
+    , containers    >=0.4.0.0 && <0.8
     , transformers  >=0.3.0.0 && <0.7
 
   if !impl(ghc >=7.8)
