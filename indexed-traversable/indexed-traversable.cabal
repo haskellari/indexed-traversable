@@ -1,6 +1,6 @@
 cabal-version:      1.12
 name:               indexed-traversable
-version:            0.1.3
+version:            0.1.3.1
 build-type:         Simple
 license:            BSD2
 license-file:       LICENSE
@@ -34,23 +34,14 @@ description:
 
 extra-source-files: Changelog.md
 tested-with:
-  GHC ==7.0.4
-   || ==7.2.2
-   || ==7.4.2
-   || ==7.6.3
-   || ==7.8.4
-   || ==7.10.3
-   || ==8.0.2
-   || ==8.2.2
-   || ==8.4.4
-   || ==8.6.5
+  GHC ==8.6.5
    || ==8.8.4
    || ==8.10.7
    || ==9.0.2
    || ==9.2.8
-   || ==9.4.7
-   || ==9.6.3
-   || ==9.8.1
+   || ==9.4.8
+   || ==9.6.5
+   || ==9.8.2
 
 source-repository head
   type:     git
@@ -59,7 +50,6 @@ source-repository head
 
 library
   default-language: Haskell2010
-  ghc-options:      -Wall
   hs-source-dirs:   src
   other-modules:
     CoerceCompat
@@ -74,27 +64,9 @@ library
 
   build-depends:
       array         >=0.3.0.2 && <0.6
-    , base          >=4.3     && <4.20
-    , containers    >=0.4.0.0 && <0.7
-    , transformers  >=0.3.0.0 && <0.7
-
-  if !impl(ghc >=7.8)
-    build-depends: tagged >=0.8.5 && <0.9
-
-  if !impl(ghc >=7.10)
-    build-depends: void >=0.7.2 && <0.8
-
-  if !impl(ghc >=8.0)
-    build-depends:
-        base-orphans         >=0.8.3  && <0.10
-      , semigroups           >=0.18.4 && <0.21
-      , transformers-compat  >=0.6.6  && <0.8
+    , base          >=4.12    && <4.20
+    , containers    >=0.6.0.1 && <0.7
+    , transformers  >=0.5.6.0 && <0.7
 
   if !impl(ghc >=9.6)
     build-depends: foldable1-classes-compat >=0.1 && <0.2
-
-  if (impl(ghc >=7.0) && impl(ghc <7.6))
-    build-depends: ghc-prim
-
-  if (impl(ghc >=7.0) && impl(ghc <7.2))
-    build-depends: generic-deriving >=1.14 && <1.15
