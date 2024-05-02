@@ -37,16 +37,7 @@ import Data.Foldable.WithIndex
 import Data.Functor.WithIndex
 import Data.Traversable.WithIndex
 
-#if MIN_VERSION_base(4,7,0)
 import Data.Typeable (Typeable, typeRep)
-#else
-import Data.Typeable (TypeRep, Typeable1, typeOf1)
-
-#define Typeable Typeable1
-
-typeRep :: forall f i. Typeable1 f => Tests i f -> TypeRep
-typeRep _ = typeOf1 (undefined :: f Int)
-#endif
 
 -------------------------------------------------------------------------------
 -- Main

@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveFunctor    #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes       #-}
@@ -23,14 +22,12 @@ main = defaultMain
       , bench "itoList"    $ nf itoList v
       ]
     ]
-#if MIN_VERSION_containers(0,5,0)
   , bgroup "sequence"
     [ bgroup "itoList"
       [ bench "native"     $ nf (F.toList . Seq.mapWithIndex (,)) s
       , bench "itoList"    $ nf itoList s
       ]
     ]
-#endif
   , bgroup "list"
     [ bgroup "itoList"
       [ bench "native"     $ nf (zip [(0::Int)..]) l
