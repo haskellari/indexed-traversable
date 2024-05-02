@@ -1,3 +1,7 @@
+# 0.1.4 [2024-05-dd]
+
+- Drop support for GHCs prior 8.6.5
+
 # 0.1.3 [2023-10-04]
 
 - Add `Foldable1WithIndex1` type-class, an indexed version of `Foldable1`.

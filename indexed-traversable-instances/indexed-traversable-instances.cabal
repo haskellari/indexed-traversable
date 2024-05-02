@@ -1,7 +1,6 @@
 cabal-version:      1.12
 name:               indexed-traversable-instances
-version:            0.1.1.2
-x-revision:         2
+version:            0.1.2
 build-type:         Simple
 license:            BSD2
 license-file:       LICENSE
@@ -22,21 +21,14 @@ description:
 
 extra-source-files: Changelog.md
 tested-with:
-  GHC ==7.4.2
-   || ==7.6.3
-   || ==7.8.4
-   || ==7.10.3
-   || ==8.0.2
-   || ==8.2.2
-   || ==8.4.4
-   || ==8.6.5
+  GHC ==8.6.5
    || ==8.8.4
    || ==8.10.7
    || ==9.0.2
    || ==9.2.8
-   || ==9.4.7
-   || ==9.6.3
-   || ==9.8.1
+   || ==9.4.8
+   || ==9.6.5
+   || ==9.8.2
 
 source-repository head
   type:     git
@@ -45,22 +37,20 @@ source-repository head
 
 library
   default-language: Haskell2010
-  ghc-options:      -Wall
   hs-source-dirs:   src
   build-depends:
-      base                  >=4.5      && <4.20
-    , indexed-traversable   >=0.1      && <0.2
+      base                  >=4.12     && <4.20
+    , indexed-traversable   >=0.1.4    && <0.2
     , OneTuple              >=0.3      && <0.5
     , tagged                >=0.8.6    && <0.9
     , unordered-containers  >=0.2.8.0  && <0.3
-    , vector                >=0.12.1.2 && <0.14
+    , vector                >=0.13.1.0 && <0.14
 
   exposed-modules:  Data.Functor.WithIndex.Instances
 
 test-suite safe
   type:             exitcode-stdio-1.0
   default-language: Haskell2010
-  ghc-options:      -Wall
   hs-source-dirs:   tests
   main-is:          safe.hs
   build-depends:
@@ -71,7 +61,6 @@ test-suite safe
 test-suite indexed-tests
   type:             exitcode-stdio-1.0
   default-language: Haskell2010
-  ghc-options:      -Wall
   hs-source-dirs:   tests
   main-is:          main.hs
   build-depends:

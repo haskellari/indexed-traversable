@@ -1,26 +1,14 @@
-{-# LANGUAGE CPP                    #-}
 {-# LANGUAGE BangPatterns           #-}
+{-# LANGUAGE CPP                    #-}
+{-# LANGUAGE DefaultSignatures      #-}
 {-# LANGUAGE FlexibleInstances      #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GADTs                  #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE PolyKinds              #-}
+{-# LANGUAGE Safe                   #-}
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
-
-{-# LANGUAGE CPP         #-}
-#if __GLASGOW_HASKELL__ >= 704
-{-# LANGUAGE Safe        #-}
-#elif __GLASGOW_HASKELL__ >= 702
-{-# LANGUAGE Trustworthy #-}
-#endif
-
-#if __GLASGOW_HASKELL__ >= 702
-{-# LANGUAGE DefaultSignatures      #-}
-#endif
-
-#if __GLASGOW_HASKELL__ >= 706
-{-# LANGUAGE PolyKinds #-}
-#endif
 module WithIndex where
 
 import Prelude
@@ -28,7 +16,7 @@ import Prelude
        flip, id, seq, snd, ($!), ($), (.))
 
 import Control.Applicative
-       (Applicative (..), Const (..), ZipList (..), (<$>), liftA2)
+       (Applicative (..), Const (..), ZipList (..), liftA2, (<$>))
 import Control.Applicative.Backwards (Backwards (..))
 import Control.Monad.Trans.Identity  (IdentityT (..))
 import Control.Monad.Trans.Reader    (ReaderT (..))
@@ -53,15 +41,9 @@ import Data.Traversable              (Traversable (..))
 import Data.Tree                     (Tree (..))
 import Data.Void                     (Void)
 
-#if __GLASGOW_HASKELL__ >= 702
 import GHC.Generics
        (K1 (..), Par1 (..), Rec1 (..), U1 (..), V1, (:*:) (..), (:+:) (..),
        (:.:) (..))
-#else
-import Generics.Deriving
-       (K1 (..), Par1 (..), Rec1 (..), U1 (..), V1, (:*:) (..), (:+:) (..),
-       (:.:) (..))
-#endif
 
 import qualified Data.Array    as Array
 import qualified Data.IntMap   as IntMap
@@ -90,11 +72,9 @@ class Functor f => FunctorWithIndex i f | f -> i where
   -- | Map with access to the index.
   imap :: (i -> a -> b) -> f a -> f b
 
-#if __GLASGOW_HASKELL__ >= 704
   default imap :: TraversableWithIndex i f => (i -> a -> b) -> f a -> f b
   imap = imapDefault
   {-# INLINE imap #-}
-#endif
 
 imapDefault :: TraversableWithIndex i f => (i -> a -> b) -> f a -> f b
 -- imapDefault f = runIdentity #. itraverse (\i a -> Identity (f i a))
@@ -117,11 +97,9 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   -- @
   ifoldMap :: Monoid m => (i -> a -> m) -> f a -> m
 
-#if __GLASGOW_HASKELL__ >= 704
   default ifoldMap :: (TraversableWithIndex i f, Monoid m) => (i -> a -> m) -> f a -> m
   ifoldMap = ifoldMapDefault
   {-# INLINE ifoldMap #-}
-#endif
 
   -- | A variant of 'ifoldMap' that is strict in the accumulator.
   --
@@ -260,11 +238,9 @@ class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => Traversabl
   -- @
   itraverse :: Applicative f => (i -> a -> f b) -> t a -> f (t b)
 
-#if __GLASGOW_HASKELL__ >= 704
   default itraverse :: (i ~ Int, Applicative f) => (i -> a -> f b) -> t a -> f (t b)
   itraverse f s = snd $ runIndexing (traverse (\a -> Indexing (\i -> i `seq` (i + 1, f i a))) s) 0
   {-# INLINE itraverse #-}
-#endif
 
 -------------------------------------------------------------------------------
 -- base
@@ -541,24 +517,14 @@ instance FunctorWithIndex Int Seq where
   imap = Seq.mapWithIndex
   {-# INLINE imap #-}
 instance FoldableWithIndex Int Seq where
-#if MIN_VERSION_containers(0,5,8)
   ifoldMap = Seq.foldMapWithIndex
-#else
-  ifoldMap f = Data.Foldable.fold . Seq.mapWithIndex f
-#endif
   {-# INLINE ifoldMap #-}
   ifoldr = Seq.foldrWithIndex
   {-# INLINE ifoldr #-}
   ifoldl f = Seq.foldlWithIndex (flip f)
   {-# INLINE ifoldl #-}
 instance TraversableWithIndex Int Seq where
-#if MIN_VERSION_containers(0,6,0)
   itraverse = Seq.traverseWithIndex
-#else
-  -- Much faster than Seq.traverseWithIndex for containers < 0.6.0, see
-  -- https://github.com/haskell/containers/issues/603.
-  itraverse f = sequenceA . Seq.mapWithIndex f
-#endif
   {-# INLINE itraverse #-}
 
 instance FunctorWithIndex Int IntMap where
@@ -566,25 +532,15 @@ instance FunctorWithIndex Int IntMap where
   {-# INLINE imap #-}
 
 instance FoldableWithIndex Int IntMap where
-#if MIN_VERSION_containers(0,5,4)
   ifoldMap = IntMap.foldMapWithKey
-#else
-  ifoldMap = ifoldMapDefault
-#endif
   {-# INLINE ifoldMap #-}
-#if MIN_VERSION_containers(0,5,0)
   ifoldr   = IntMap.foldrWithKey
   ifoldl'  = IntMap.foldlWithKey' . flip
   {-# INLINE ifoldr #-}
   {-# INLINE ifoldl' #-}
-#endif
 
 instance TraversableWithIndex Int IntMap where
-#if MIN_VERSION_containers(0,5,0)
   itraverse = IntMap.traverseWithKey
-#else
-  itraverse f = sequenceA . IntMap.mapWithKey f
-#endif
   {-# INLINE itraverse #-}
 
 instance FunctorWithIndex k (Map k) where
@@ -592,25 +548,15 @@ instance FunctorWithIndex k (Map k) where
   {-# INLINE imap #-}
 
 instance FoldableWithIndex k (Map k) where
-#if MIN_VERSION_containers(0,5,4)
   ifoldMap = Map.foldMapWithKey
-#else
-  ifoldMap = ifoldMapDefault
-#endif
   {-# INLINE ifoldMap #-}
-#if MIN_VERSION_containers(0,5,0)
   ifoldr   = Map.foldrWithKey
   ifoldl'  = Map.foldlWithKey' . flip
   {-# INLINE ifoldr #-}
   {-# INLINE ifoldl' #-}
-#endif
 
 instance TraversableWithIndex k (Map k) where
-#if MIN_VERSION_containers(0,5,0)
   itraverse = Map.traverseWithKey
-#else
-  itraverse f = sequenceA . Map.mapWithKey f
-#endif
   {-# INLINE itraverse #-}
 
 -------------------------------------------------------------------------------
@@ -783,12 +729,11 @@ instance Applicative f => Applicative (Indexing f) where
     (j, ff) -> case ma j of
        ~(k, fa) -> (k, ff <*> fa)
   {-# INLINE (<*>) #-}
-#if __GLASGOW_HASKELL__ >=821
+
   liftA2 f (Indexing ma) (Indexing mb) = Indexing $ \ i -> case ma i of
      (j, ja) -> case mb j of
         ~(k, kb) -> (k, liftA2 f ja kb)
   {-# INLINE liftA2 #-}
-#endif
 
 -------------------------------------------------------------------------------
 -- Strict curry

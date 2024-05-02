@@ -3,3 +3,12 @@ packages:   indexed-traversable-instances
 packages:   indexed-traversable-benchmarks
 tests:      True
 benchmarks: True
+
+package indexed-traversable
+  ghc-options: -Wall
+
+package indexed-traversable-instances
+  ghc-options: -Wall
+
+package indexed-traversable-benchmarks
+  ghc-options: -Wall

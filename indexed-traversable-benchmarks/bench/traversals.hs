@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP              #-}
 {-# LANGUAGE DeriveFunctor    #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes       #-}
@@ -25,7 +24,6 @@ main = defaultMain
       , bench "default"  $ nf (imapDefault      (\i x -> x + i + 100)) v
       ]
     ]
-#if MIN_VERSION_containers(0,5,0)
   , bgroup "sequence"
     [  bgroup "imap"
       [ bench "native"   $ nf (Seq.mapWithIndex (\i x -> x + i + 100)) s
@@ -33,7 +31,6 @@ main = defaultMain
       , bench "default"  $ nf (imapDefault      (\i x -> x + i + 100)) s
       ]
     ]
-#endif
   , bgroup "list"
     [ bgroup "imap"
       [ bench "native"   $ nf (zipWith          (\i x -> x + i + 100) [0..]) l
