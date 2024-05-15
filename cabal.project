@@ -12,3 +12,8 @@ package indexed-traversable-instances
 
 package indexed-traversable-benchmarks
   ghc-options: -Wall
+
+allow-newer: quickcheck-instances:base
+allow-newer: quickcheck-instances:containers
+allow-newer: uuid-types:template-haskell
+allow-newer: these:base
