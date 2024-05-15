@@ -42,6 +42,7 @@ tested-with:
    || ==9.4.8
    || ==9.6.5
    || ==9.8.2
+   || ==9.10.1
 
 source-repository head
   type:     git
@@ -64,8 +65,8 @@ library
 
   build-depends:
       array         >=0.3.0.2 && <0.6
-    , base          >=4.12    && <4.20
-    , containers    >=0.6.0.1 && <0.7
+    , base          >=4.12    && <4.21
+    , containers    >=0.6.0.1 && <0.8
     , transformers  >=0.5.6.0 && <0.7
 
   if !impl(ghc >=9.6)
