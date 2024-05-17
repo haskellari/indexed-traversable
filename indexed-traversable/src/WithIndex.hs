@@ -93,7 +93,7 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   -- When you don't need access to the index then 'foldMap' is more flexible in what it accepts.
   --
   -- @
-  -- 'foldMap' ≡ 'ifoldMap' '.' 'const'
+  -- 'foldMap' ≡ 'ifoldMap' '.' 'Data.Function.const'
   -- @
   ifoldMap :: Monoid m => (i -> a -> m) -> f a -> m
 
@@ -106,7 +106,7 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   -- When you don't need access to the index then 'Data.Foldable.foldMap'' is more flexible in what it accepts.
   --
   -- @
-  -- 'foldMap'' ≡ 'ifoldMap'' '.' 'const'
+  -- 'foldMap'' ≡ 'ifoldMap'' '.' 'Data.Function.const'
   -- @
   ifoldMap' :: Monoid m => (i -> a -> m) -> f a -> m
   ifoldMap' f = ifoldl' (\i acc a -> mappend acc (f i a)) mempty
@@ -117,7 +117,7 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   -- When you don't need access to the index then 'Data.Foldable.foldr' is more flexible in what it accepts.
   --
   -- @
-  -- 'Data.Foldable.foldr' ≡ 'ifoldr' '.' 'const'
+  -- 'Data.Foldable.foldr' ≡ 'ifoldr' '.' 'Data.Function.const'
   -- @
   ifoldr   :: (i -> a -> b -> b) -> b -> f a -> b
   ifoldr f z t = appEndo (ifoldMap (Endo #.. f) t) z
@@ -128,7 +128,7 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   -- When you don't need access to the index then 'Data.Foldable.foldl' is more flexible in what it accepts.
   --
   -- @
-  -- 'Data.Foldable.foldl' ≡ 'ifoldl' '.' 'const'
+  -- 'Data.Foldable.foldl' ≡ 'ifoldl' '.' 'Data.Function.const'
   -- @
   ifoldl :: (i -> b -> a -> b) -> b -> f a -> b
   ifoldl f z t = appEndo (getDual (ifoldMap (\ i -> Dual #. Endo #. flip (f i)) t)) z
@@ -139,7 +139,7 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   -- When you don't need access to the index then 'foldr'' is more flexible in what it accepts.
   --
   -- @
-  -- 'foldr'' ≡ 'ifoldr'' '.' 'const'
+  -- 'foldr'' ≡ 'ifoldr'' '.' 'Data.Function.const'
   -- @
   ifoldr' :: (i -> a -> b -> b) -> b -> f a -> b
   ifoldr' f z0 xs = ifoldl f' id xs z0
@@ -151,7 +151,7 @@ class Foldable f => FoldableWithIndex i f | f -> i where
   -- When you don't need access to the index then 'Control.Lens.Fold.foldlOf'' is more flexible in what it accepts.
   --
   -- @
-  -- 'Data.Foldable.foldl'' l ≡ 'ifoldl'' l '.' 'const'
+  -- 'Data.Foldable.foldl'' l ≡ 'ifoldl'' l '.' 'Data.Function.const'
   -- @
   ifoldl' :: (i -> b -> a -> b) -> b -> f a -> b
   ifoldl' f z0 xs = ifoldr f' id xs z0
@@ -176,7 +176,7 @@ class (Foldable1 f, FoldableWithIndex i f) => Foldable1WithIndex i f | f -> i wh
   ifoldMap1' :: Semigroup m => (i -> a -> m) -> f a -> m
   ifoldMap1' f = ifoldlMap1' f (\i m a -> m <> f i a)
 
-  -- | Generalized 'ifoldr1'.
+  -- | Generalized @ifoldr1@.
   ifoldrMap1 :: (i -> a -> b) -> (i -> a -> b -> b) -> f a -> b
   ifoldrMap1 f g xs =
       appFromMaybe (ifoldMap1 (FromMaybe #.. h) xs) Nothing
@@ -184,7 +184,7 @@ class (Foldable1 f, FoldableWithIndex i f) => Foldable1WithIndex i f | f -> i wh
       h i a Nothing  = f i a
       h i a (Just b) = g i a b
 
-  -- | Generalized 'ifoldl1''.
+  -- | Generalized @ifoldl1'@.
   ifoldlMap1' :: (i -> a -> b) -> (i -> b -> a -> b) -> f a -> b
   ifoldlMap1' f g xs =
       ifoldrMap1 f' g' xs SNothing
@@ -197,7 +197,7 @@ class (Foldable1 f, FoldableWithIndex i f) => Foldable1WithIndex i f | f -> i wh
       g' i a x SNothing  = x $! SJust (f i a)
       g' i a x (SJust b) = x $! SJust (g i b a)
 
-  -- | Generalized 'ifoldl1'.
+  -- | Generalized @ifoldl1@.
   ifoldlMap1 :: (i -> a -> b) -> (i -> b -> a -> b) -> f a -> b
   ifoldlMap1 f g xs =
       appFromMaybe (getDual (ifoldMap1 ((Dual . FromMaybe) #.. h) xs)) Nothing
@@ -205,7 +205,7 @@ class (Foldable1 f, FoldableWithIndex i f) => Foldable1WithIndex i f | f -> i wh
       h i a Nothing  = f i a
       h i a (Just b) = g i b a
 
-  -- | Generalized 'ifoldr1''.
+  -- | Generalized @ifoldr1'@.
   ifoldrMap1' :: (i -> a -> b) -> (i -> a -> b -> b) -> f a -> b
   ifoldrMap1' f g xs =
       ifoldlMap1 f' g' xs SNothing
@@ -227,14 +227,14 @@ class (Foldable1 f, FoldableWithIndex i f) => Foldable1WithIndex i f | f -> i wh
 -- An instance must satisfy a (modified) form of the 'Traversable' laws:
 --
 -- @
--- 'itraverse' ('const' 'Identity') ≡ 'Identity'
--- 'fmap' ('itraverse' f) '.' 'itraverse' g ≡ 'Data.Functor.Compose.getCompose' '.' 'itraverse' (\\i -> 'Data.Functor.Compose.Compose' '.' 'fmap' (f i) '.' g i)
+-- 'itraverse' ('Data.Function.const' v'Identity') ≡ v'Identity'
+-- 'fmap' ('itraverse' f) '.' 'itraverse' g ≡ 'Data.Functor.Compose.getCompose' '.' 'itraverse' (\\i -> v'Data.Functor.Compose.Compose' '.' 'fmap' (f i) '.' g i)
 -- @
 class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => TraversableWithIndex i t | t -> i where
   -- | Traverse an indexed container.
   --
   -- @
-  -- 'itraverse' ≡ 'itraverseOf' 'itraversed'
+  -- 'itraverse' ≡ 'Control.Lens.Traversal.itraverseOf' 'Control.Lens.Indexed.itraversed'
   -- @
   itraverse :: Applicative f => (i -> a -> f b) -> t a -> f (t b)
 
@@ -674,7 +674,7 @@ skip _ = ()
 
 -- | Used internally by 'Control.Lens.Traversal.traverseOf_' and the like.
 --
--- The argument 'a' of the result should not be used!
+-- The argument @a@ of the result should not be used!
 newtype Traversed a f = Traversed { getTraversed :: f a }
 
 -- See 4.16 Changelog entry for the explanation of "why not Apply f =>"?
@@ -694,7 +694,7 @@ instance Applicative f => Monoid (Traversed a f) where
 
 -- | Used internally by 'Control.Lens.Traversal.mapM_' and the like.
 --
--- The argument 'a' of the result should not be used!
+-- The argument @a@ of the result should not be used!
 --
 -- See 4.16 Changelog entry for the explanation of "why not Apply f =>"?
 newtype Sequenced a m = Sequenced { getSequenced :: m a }
