@@ -6,7 +6,7 @@
 #endif
 -- | Indexed non-empty Foldables.
 module Data.Foldable1.WithIndex (
-    -- * Indexed Foldables
+    -- * Indexed non-empty Foldables
     Foldable1WithIndex (..),
 ) where
 
