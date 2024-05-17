@@ -105,9 +105,8 @@ ifor_ :: (FoldableWithIndex i t, Applicative f) => t a -> (i -> a -> f b) -> f (
 ifor_ = flip itraverse_
 {-# INLINE ifor_ #-}
 
--- | Run monadic actions for each target of an 'ControlLens.Fold.IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with
--- access to the index,
--- discarding the results.
+-- | Map each element of a structure to a monadic action with access to the index, evaluate these actions from left to right, and
+-- discard the results.
 --
 -- When you don't need access to the index then 'Data.Foldable.mapM_' is more flexible in what it accepts.
 --
@@ -118,9 +117,8 @@ imapM_ :: (FoldableWithIndex i t, Monad m) => (i -> a -> m b) -> t a -> m ()
 imapM_ f = liftM skip . getSequenced #. ifoldMap (Sequenced #.. f)
 {-# INLINE imapM_ #-}
 
--- | Run monadic actions for each target of an 'Control.Lens.Fold.IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with
--- access to the index,
--- discarding the results (with the arguments flipped).
+-- | Map each element of a structure to a monadic action with access to the index (and arguments flipped), evaluate these actions from
+-- left to right, and discard the results.
 --
 -- @
 -- 'iforM_' ≡ 'flip' 'imapM_'
