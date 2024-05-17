@@ -227,8 +227,8 @@ class (Foldable1 f, FoldableWithIndex i f) => Foldable1WithIndex i f | f -> i wh
 -- An instance must satisfy a (modified) form of the 'Traversable' laws:
 --
 -- @
--- 'itraverse' ('Data.Function.const' 'Identity') ≡ 'Identity'
--- 'fmap' ('itraverse' f) '.' 'itraverse' g ≡ 'Data.Functor.Compose.getCompose' '.' 'itraverse' (\\i -> 'Data.Functor.Compose.Compose' '.' 'fmap' (f i) '.' g i)
+-- 'itraverse' ('Data.Function.const' v'Identity') ≡ v'Identity'
+-- 'fmap' ('itraverse' f) '.' 'itraverse' g ≡ 'Data.Functor.Compose.getCompose' '.' 'itraverse' (\\i -> v'Data.Functor.Compose.Compose' '.' 'fmap' (f i) '.' g i)
 -- @
 class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) => TraversableWithIndex i t | t -> i where
   -- | Traverse an indexed container.
