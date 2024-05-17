@@ -176,7 +176,7 @@ class (Foldable1 f, FoldableWithIndex i f) => Foldable1WithIndex i f | f -> i wh
   ifoldMap1' :: Semigroup m => (i -> a -> m) -> f a -> m
   ifoldMap1' f = ifoldlMap1' f (\i m a -> m <> f i a)
 
-  -- | Generalized 'ifoldr1'.
+  -- | Generalized @ifoldr1@.
   ifoldrMap1 :: (i -> a -> b) -> (i -> a -> b -> b) -> f a -> b
   ifoldrMap1 f g xs =
       appFromMaybe (ifoldMap1 (FromMaybe #.. h) xs) Nothing
@@ -184,7 +184,7 @@ class (Foldable1 f, FoldableWithIndex i f) => Foldable1WithIndex i f | f -> i wh
       h i a Nothing  = f i a
       h i a (Just b) = g i a b
 
-  -- | Generalized 'ifoldl1''.
+  -- | Generalized @ifoldl1'@.
   ifoldlMap1' :: (i -> a -> b) -> (i -> b -> a -> b) -> f a -> b
   ifoldlMap1' f g xs =
       ifoldrMap1 f' g' xs SNothing
@@ -197,7 +197,7 @@ class (Foldable1 f, FoldableWithIndex i f) => Foldable1WithIndex i f | f -> i wh
       g' i a x SNothing  = x $! SJust (f i a)
       g' i a x (SJust b) = x $! SJust (g i b a)
 
-  -- | Generalized 'ifoldl1'.
+  -- | Generalized @ifoldl1@.
   ifoldlMap1 :: (i -> a -> b) -> (i -> b -> a -> b) -> f a -> b
   ifoldlMap1 f g xs =
       appFromMaybe (getDual (ifoldMap1 ((Dual . FromMaybe) #.. h) xs)) Nothing
@@ -205,7 +205,7 @@ class (Foldable1 f, FoldableWithIndex i f) => Foldable1WithIndex i f | f -> i wh
       h i a Nothing  = f i a
       h i a (Just b) = g i b a
 
-  -- | Generalized 'ifoldr1''.
+  -- | Generalized @ifoldr1'@.
   ifoldrMap1' :: (i -> a -> b) -> (i -> a -> b -> b) -> f a -> b
   ifoldrMap1' f g xs =
       ifoldlMap1 f' g' xs SNothing
@@ -674,7 +674,7 @@ skip _ = ()
 
 -- | Used internally by 'Control.Lens.Traversal.traverseOf_' and the like.
 --
--- The argument 'a' of the result should not be used!
+-- The argument @a@ of the result should not be used!
 newtype Traversed a f = Traversed { getTraversed :: f a }
 
 -- See 4.16 Changelog entry for the explanation of "why not Apply f =>"?
@@ -694,7 +694,7 @@ instance Applicative f => Monoid (Traversed a f) where
 
 -- | Used internally by 'Control.Lens.Traversal.mapM_' and the like.
 --
--- The argument 'a' of the result should not be used!
+-- The argument @a@ of the result should not be used!
 --
 -- See 4.16 Changelog entry for the explanation of "why not Apply f =>"?
 newtype Sequenced a m = Sequenced { getSequenced :: m a }
