@@ -41,7 +41,7 @@ import WithIndex
 -- When you don't need access to the index then 'any' is more flexible in what it accepts.
 --
 -- @
--- 'any' ≡ 'iany' '.' 'const'
+-- 'any' ≡ 'iany' '.' 'Data.Function.const'
 -- @
 iany :: FoldableWithIndex i f => (i -> a -> Bool) -> f a -> Bool
 iany f = getAny #. ifoldMap (Any #.. f)
@@ -49,10 +49,10 @@ iany f = getAny #. ifoldMap (Any #.. f)
 
 -- | Return whether or not all elements in a container satisfy a predicate, with access to the index @i@.
 --
--- When you don't need access to the index then 'all' is more flexible in what it accepts.
+-- When you don't need access to the index then 'Data.Foldable.all' is more flexible in what it accepts.
 --
 -- @
--- 'all' ≡ 'iall' '.' 'const'
+-- 'Data.Foldable.all' ≡ 'iall' '.' 'Data.Function.const'
 -- @
 iall :: FoldableWithIndex i f => (i -> a -> Bool) -> f a -> Bool
 iall f = getAll #. ifoldMap (All #.. f)
@@ -63,7 +63,7 @@ iall f = getAll #. ifoldMap (All #.. f)
 -- When you don't need access to the index then 'none' is more flexible in what it accepts.
 --
 -- @
--- 'none' ≡ 'inone' '.' 'const'
+-- 'none' ≡ 'inone' '.' 'Data.Function.const'
 -- 'inone' f ≡ 'not' '.' 'iany' f
 -- @
 inone :: FoldableWithIndex i f => (i -> a -> Bool) -> f a -> Bool
@@ -81,10 +81,10 @@ none f = not . any f
 
 -- | Traverse elements with access to the index @i@, discarding the results.
 --
--- When you don't need access to the index then 'traverse_' is more flexible in what it accepts.
+-- When you don't need access to the index then 'Data.Foldable.traverse_' is more flexible in what it accepts.
 --
 -- @
--- 'traverse_' l = 'itraverse' '.' 'const'
+-- 'Data.Foldable.traverse_' l = 'itraverse' '.' 'Data.Function.const'
 -- @
 itraverse_ :: (FoldableWithIndex i t, Applicative f) => (i -> a -> f b) -> t a -> f ()
 itraverse_ f = void . getTraversed #. ifoldMap (Traversed #.. f)
@@ -96,28 +96,30 @@ itraverse_ f = void . getTraversed #. ifoldMap (Traversed #.. f)
 -- 'ifor_' ≡ 'flip' 'itraverse_'
 -- @
 --
--- When you don't need access to the index then 'for_' is more flexible in what it accepts.
+-- When you don't need access to the index then 'Data.Foldable.for_' is more flexible in what it accepts.
 --
 -- @
--- 'for_' a ≡ 'ifor_' a '.' 'const'
+-- 'Data.Foldable.for_' a ≡ 'ifor_' a '.' 'Data.Function.const'
 -- @
 ifor_ :: (FoldableWithIndex i t, Applicative f) => t a -> (i -> a -> f b) -> f ()
 ifor_ = flip itraverse_
 {-# INLINE ifor_ #-}
 
--- | Run monadic actions for each target of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with access to the index,
+-- | Run monadic actions for each target of an 'ControlLens.Fold.IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with
+-- access to the index,
 -- discarding the results.
 --
--- When you don't need access to the index then 'Control.Lens.Fold.mapMOf_' is more flexible in what it accepts.
+-- When you don't need access to the index then 'Data.Foldable.mapM_' is more flexible in what it accepts.
 --
 -- @
--- 'mapM_' ≡ 'imapM' '.' 'const'
+-- 'Data.Foldable.mapM_' ≡ 'imapM_' '.' 'Data.Function.const'
 -- @
 imapM_ :: (FoldableWithIndex i t, Monad m) => (i -> a -> m b) -> t a -> m ()
 imapM_ f = liftM skip . getSequenced #. ifoldMap (Sequenced #.. f)
 {-# INLINE imapM_ #-}
 
--- | Run monadic actions for each target of an 'IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with access to the index,
+-- | Run monadic actions for each target of an 'Control.Lens.Fold.IndexedFold' or 'Control.Lens.IndexedTraversal.IndexedTraversal' with
+-- access to the index,
 -- discarding the results (with the arguments flipped).
 --
 -- @
@@ -127,7 +129,7 @@ imapM_ f = liftM skip . getSequenced #. ifoldMap (Sequenced #.. f)
 -- When you don't need access to the index then 'Control.Monad.forM_' is more flexible in what it accepts.
 --
 -- @
--- 'Control.Monad.forM_' a ≡ 'iforM' a '.' 'const'
+-- 'Control.Monad.forM_' a ≡ 'iforM_' a '.' 'Data.Function.const'
 -- @
 iforM_ :: (FoldableWithIndex i t, Monad m) => t a -> (i -> a -> m b) -> m ()
 iforM_ = flip imapM_
@@ -135,10 +137,10 @@ iforM_ = flip imapM_
 
 -- | Concatenate the results of a function of the elements of an indexed container with access to the index.
 --
--- When you don't need access to the index then 'concatMap' is more flexible in what it accepts.
+-- When you don't need access to the index then 'Data.Foldable.concatMap' is more flexible in what it accepts.
 --
 -- @
--- 'concatMap' ≡ 'iconcatMap' '.' 'const'
+-- 'Data.Foldable.concatMap' ≡ 'iconcatMap' '.' 'Data.Function.const'
 -- 'iconcatMap' ≡ 'ifoldMap'
 -- @
 iconcatMap :: FoldableWithIndex i f => (i -> a -> [b]) -> f a -> [b]
@@ -148,10 +150,10 @@ iconcatMap = ifoldMap
 -- | Searches a container with a predicate that is also supplied the index, returning the left-most element of the structure
 -- matching the predicate, or 'Nothing' if there is no such element.
 --
--- When you don't need access to the index then 'find' is more flexible in what it accepts.
+-- When you don't need access to the index then 'Data.Foldable.find' is more flexible in what it accepts.
 --
 -- @
--- 'find' ≡ 'ifind' '.' 'const'
+-- 'Data.Foldable.find' ≡ 'ifind' '.' 'Data.Function.const'
 -- @
 ifind :: FoldableWithIndex i f => (i -> a -> Bool) -> f a -> Maybe (i, a)
 ifind p = ifoldr (\i a y -> if p i a then Just (i, a) else y) Nothing
@@ -159,10 +161,10 @@ ifind p = ifoldr (\i a y -> if p i a then Just (i, a) else y) Nothing
 
 -- | Monadic fold right over the elements of a structure with an index.
 --
--- When you don't need access to the index then 'foldrM' is more flexible in what it accepts.
+-- When you don't need access to the index then 'Data.Foldable.foldrM' is more flexible in what it accepts.
 --
 -- @
--- 'foldrM' ≡ 'ifoldrM' '.' 'const'
+-- 'Data.Foldable.foldrM' ≡ 'ifoldrM' '.' 'Data.Function.const'
 -- @
 ifoldrM :: (FoldableWithIndex i f, Monad m) => (i -> a -> b -> m b) -> b -> f a -> m b
 ifoldrM f z0 xs = ifoldl f' return xs z0
@@ -171,10 +173,10 @@ ifoldrM f z0 xs = ifoldl f' return xs z0
 
 -- | Monadic fold over the elements of a structure with an index, associating to the left.
 --
--- When you don't need access to the index then 'foldlM' is more flexible in what it accepts.
+-- When you don't need access to the index then 'Data.Foldable.foldlM' is more flexible in what it accepts.
 --
 -- @
--- 'foldlM' ≡ 'ifoldlM' '.' 'const'
+-- 'Data.Foldable.foldlM' ≡ 'ifoldlM' '.' 'Data.Function.const'
 -- @
 ifoldlM :: (FoldableWithIndex i f, Monad m) => (i -> b -> a -> m b) -> b -> f a -> m b
 ifoldlM f z0 xs = ifoldr f' return xs z0
@@ -183,10 +185,10 @@ ifoldlM f z0 xs = ifoldr f' return xs z0
 
 -- | Extract the key-value pairs from a structure.
 --
--- When you don't need access to the indices in the result, then 'toList' is more flexible in what it accepts.
+-- When you don't need access to the indices in the result, then 'Data.Foldable.toList' is more flexible in what it accepts.
 --
 -- @
--- 'toList' ≡ 'Data.List.map' 'snd' '.' 'itoList'
+-- 'Data.Foldable.toList' ≡ 'Data.List.map' 'Data.Tuple.snd' '.' 'itoList'
 -- @
 itoList :: FoldableWithIndex i f => f a -> [(i,a)]
 itoList xs = build (\c n -> ifoldr (curry c) n xs)
