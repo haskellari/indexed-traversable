@@ -16,8 +16,9 @@ tested-with:
    || ==9.0.2
    || ==9.2.8
    || ==9.4.8
-   || ==9.6.5
-   || ==9.8.2
+   || ==9.6.6
+   || ==9.8.4
+   || ==9.10.1
 
 source-repository head
   type:     git
@@ -36,7 +37,7 @@ benchmark folds
   hs-source-dirs:   bench
   ghc-options:      -Wall
   build-depends:
-      base
+      base <5
     , containers
     , indexed-traversable
     , indexed-traversable-instances
@@ -52,7 +53,7 @@ benchmark traversals
   hs-source-dirs:   bench
   ghc-options:      -Wall
   build-depends:
-      base
+      base <5
     , containers
     , indexed-traversable
     , indexed-traversable-instances
