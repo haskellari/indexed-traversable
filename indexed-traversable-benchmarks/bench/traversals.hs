@@ -4,7 +4,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Main (main) where
 
-import Criterion.Main (bench, bgroup, defaultMain, nf)
+import Test.Tasty.Bench (bench, bgroup, defaultMain, nf, nfAppIO)
 
 import qualified Data.HashMap.Lazy as HM
 import qualified Data.Map          as Map
@@ -13,7 +13,7 @@ import qualified Data.Vector       as V
 
 import Data.Functor.WithIndex           (imap)
 import Data.Functor.WithIndex.Instances ()
-import Data.Traversable.WithIndex       (imapDefault)
+import Data.Traversable.WithIndex       (imapDefault, itraverse)
 
 main :: IO ()
 main = defaultMain
@@ -23,6 +23,7 @@ main = defaultMain
       , bench "imap"     $ nf (imap             (\i x -> x + i + 100)) v
       , bench "default"  $ nf (imapDefault      (\i x -> x + i + 100)) v
       ]
+    , bench "itraverse"  $ nfAppIO (itraverse (\i n -> pure (i, n)))   v
     ]
   , bgroup "sequence"
     [  bgroup "imap"
@@ -30,6 +31,7 @@ main = defaultMain
       , bench "imap"     $ nf (imap             (\i x -> x + i + 100)) s
       , bench "default"  $ nf (imapDefault      (\i x -> x + i + 100)) s
       ]
+    , bench "itraverse"  $ nfAppIO (itraverse (\i n -> pure (i, n)))   s
     ]
   , bgroup "list"
     [ bgroup "imap"
@@ -37,6 +39,7 @@ main = defaultMain
       , bench "imap"     $ nf (imap             (\i x -> x + i + 100))       l
       , bench "default"  $ nf (imapDefault      (\i x -> x + i + 100))       l
       ]
+    , bench "itraverse"  $ nfAppIO (itraverse (\i n -> pure (i, n)))         l
     ]
   , bgroup "map"
     [ bgroup "imap"
@@ -44,6 +47,7 @@ main = defaultMain
       , bench "imap"     $ nf (imap             (\i x -> x + i + 100)) m
       , bench "default"  $ nf (imapDefault      (\i x -> x + i + 100)) m
       ]
+    , bench "itraverse"  $ nfAppIO (itraverse (\i n -> pure (i, n)))   m
     ]
   , bgroup "hashmap"
     [ bgroup "imap"
@@ -51,6 +55,7 @@ main = defaultMain
       , bench "imap"     $ nf (imap             (\i x -> x + i + 100)) h
       , bench "default"  $ nf (imapDefault      (\i x -> x + i + 100)) h
       ]
+    , bench "itraverse"  $ nfAppIO (itraverse (\i n -> pure (i, n)))   h
     ]
   ]
 

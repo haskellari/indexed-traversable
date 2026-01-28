@@ -44,7 +44,7 @@ benchmark folds
     , unordered-containers
     , vector
 
-  build-depends:    criterion >=1.5.9.0 && <1.7
+  build-depends:    tasty-bench
 
 benchmark traversals
   type:             exitcode-stdio-1.0
@@ -60,4 +60,4 @@ benchmark traversals
     , unordered-containers
     , vector
 
-  build-depends:    criterion >=1.5.9.0 && <1.7
+  build-depends:    tasty-bench

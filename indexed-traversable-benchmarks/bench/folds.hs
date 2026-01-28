@@ -3,7 +3,8 @@
 {-# LANGUAGE RankNTypes       #-}
 module Main (main) where
 
-import Criterion.Main (bench, bgroup, defaultMain, nf)
+import Data.Monoid      (Sum(..))
+import Test.Tasty.Bench (bench, bgroup, defaultMain, nf)
 
 import qualified Data.Foldable     as F
 import qualified Data.HashMap.Lazy as HM
@@ -21,30 +22,65 @@ main = defaultMain
       [ bench "native"     $ nf (V.toList . V.indexed) v
       , bench "itoList"    $ nf itoList v
       ]
+    , bench "ifoldMap ([])"     $ nf (ifoldMap (\i n -> [(i, n)])) v
+    , bench "ifoldMap (vector)" $ nf (ifoldMap (\i n -> V.singleton (i, n))) v
+    , bench "ifoldMap' (sum)"   $ nf (ifoldMap' (\i n -> Sum $ i + n)) v
+    , bench "ifoldr"            $ nf (ifoldr (\i n acc -> (i, n) : acc) []) v
+    , bench "ifoldl"            $ nf (ifoldl (\i acc n -> (i, n) : acc) []) v
+    , bench "ifoldr'"           $ nf (ifoldr' (\i n acc -> i + n + acc) 0) v
+    , bench "ifoldl'"           $ nf (ifoldl' (\i n acc -> i + n + acc) 0) v
     ]
   , bgroup "sequence"
     [ bgroup "itoList"
       [ bench "native"     $ nf (F.toList . Seq.mapWithIndex (,)) s
       , bench "itoList"    $ nf itoList s
       ]
+    , bench "ifoldMap ([])"     $ nf (ifoldMap (\i n -> [(i, n)])) s
+    , bench "ifoldMap (vector)" $ nf (ifoldMap (\i n -> V.singleton (i, n))) s
+    , bench "ifoldMap' (sum)"   $ nf (ifoldMap' (\i n -> Sum $ i + n)) s
+    , bench "ifoldr"            $ nf (ifoldr (\i n acc -> (i, n) : acc) []) s
+    , bench "ifoldl"            $ nf (ifoldl (\i acc n -> (i, n) : acc) []) s
+    , bench "ifoldr'"           $ nf (ifoldr' (\i n acc -> i + n + acc) 0) s
+    , bench "ifoldl'"           $ nf (ifoldl' (\i n acc -> i + n + acc) 0) s
     ]
   , bgroup "list"
     [ bgroup "itoList"
       [ bench "native"     $ nf (zip [(0::Int)..]) l
       , bench "itoList"    $ nf itoList l
       ]
+    , bench "ifoldMap ([])"     $ nf (ifoldMap (\i n -> [(i, n)])) l
+    , bench "ifoldMap (vector)" $ nf (ifoldMap (\i n -> V.singleton (i, n))) l
+    , bench "ifoldMap' (sum)"   $ nf (ifoldMap' (\i n -> Sum $ i + n)) l
+    , bench "ifoldr"            $ nf (ifoldr (\i n acc -> (i, n) : acc) []) l
+    , bench "ifoldl"            $ nf (ifoldl (\i acc n -> (i, n) : acc) []) l
+    , bench "ifoldr'"           $ nf (ifoldr' (\i n acc -> i + n + acc) 0) l
+    , bench "ifoldl'"           $ nf (ifoldl' (\i n acc -> i + n + acc) 0) l
     ]
   , bgroup "map"
     [  bgroup "itoList"
       [ bench "native"     $ nf Map.toList m
       , bench "itoList"    $ nf itoList m
       ]
+    , bench "ifoldMap ([])"     $ nf (ifoldMap (\i n -> [(i, n)])) m
+    , bench "ifoldMap (vector)" $ nf (ifoldMap (\i n -> V.singleton (i, n))) m
+    , bench "ifoldMap' (sum)"   $ nf (ifoldMap' (\i n -> Sum $ i + n)) m
+    , bench "ifoldr"            $ nf (ifoldr (\i n acc -> (i, n) : acc) []) m
+    , bench "ifoldl"            $ nf (ifoldl (\i acc n -> (i, n) : acc) []) m
+    , bench "ifoldr'"           $ nf (ifoldr' (\i n acc -> i + n + acc) 0) m
+    , bench "ifoldl'"           $ nf (ifoldl' (\i n acc -> i + n + acc) 0) m
     ]
   , bgroup "hashmap"
     [ bgroup "itoList"
       [ bench "native"     $ nf HM.toList h
       , bench "itoList"    $ nf itoList h
       ]
+    , bench "ifoldMap ([])"     $ nf (ifoldMap (\i n -> [(i, n)])) h
+    , bench "ifoldMap (vector)" $ nf (ifoldMap (\i n -> V.singleton (i, n))) h
+    , bench "ifoldMap' (sum)"   $ nf (ifoldMap' (\i n -> Sum $ i + n)) h
+    , bench "ifoldr"            $ nf (ifoldr (\i n acc -> (i, n) : acc) []) h
+    , bench "ifoldl"            $ nf (ifoldl (\i acc n -> (i, n) : acc) []) h
+    , bench "ifoldr'"           $ nf (ifoldr' (\i n acc -> i + n + acc) 0) h
+    , bench "ifoldl'"           $ nf (ifoldl' (\i n acc -> i + n + acc) 0) h
     ]
   ]
 
