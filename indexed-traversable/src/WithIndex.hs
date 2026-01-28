@@ -286,9 +286,7 @@ instance TraversableWithIndex k ((,) k) where
 
 -- | The position in the list is available as the index.
 instance FunctorWithIndex Int [] where
-  imap f = go 0 where
-    go !_ []     = []
-    go !n (x:xs) = f n x : go (n + 1) xs
+  imap = imapListOff 0
   {-# INLINE imap #-}
 instance FoldableWithIndex Int [] where
   ifoldMap = ifoldMapListOff 0
@@ -296,26 +294,44 @@ instance FoldableWithIndex Int [] where
   ifoldr = ifoldrListOff 0
   {-# INLINE ifoldr #-}
   ifoldl' = ifoldl'ListOff 0
+  {-# INLINE ifoldl' #-}
 instance TraversableWithIndex Int [] where
   itraverse = itraverseListOff 0
   {-# INLINE itraverse #-}
 
+imapListOff :: Int -> (Int -> a -> b) -> [a] -> [b]
+imapListOff off f = go off
+  where
+    -- Recursive worker so imapListOff is inlinable.
+    go !_ []     = []
+    go !n (x:xs) = f n x : go (n + 1) xs
+{-# INLINE imapListOff #-}
+
 ifoldMapListOff :: Monoid m => Int -> (Int -> a -> m) -> [a] -> m
-ifoldMapListOff off f = ifoldrListOff off (\i x acc -> mappend (f i x) acc) mempty
+ifoldMapListOff off f =
+  -- Mimic implementation of foldMap from base and use mconcat/map instead of
+  -- foldr/mappend because mconcat doesn't degrade into quadratic performance
+  -- with types such as ByteString or Text.
+  mconcat . imapListOff off f
+{-# INLINE ifoldMapListOff #-}
 
 ifoldrListOff :: Int -> (Int -> a -> b -> b) -> b -> [a] -> b
-ifoldrListOff !_   _ z []     = z
-ifoldrListOff !off f z (x:xs) = f off x (ifoldrListOff (off + 1) f z xs)
+ifoldrListOff off f z = go off
+  where
+    -- Recursive worker so ifoldrListOff is inlinable.
+    go !_ []     = z
+    go !n (x:xs) = f n x (go (n + 1) xs)
+{-# INLINE ifoldrListOff #-}
 
 ifoldl'ListOff :: Int -> (Int -> b -> a -> b) -> b -> [a] -> b
-ifoldl'ListOff !_   _ !z []     = z
-ifoldl'ListOff !off f !z (x:xs) = ifoldl'ListOff (off + 1) f (f off z x) xs
+ifoldl'ListOff off f z0 = \xs -> ifoldrListOff off (\n v fn z -> fn $! f n z v) id xs z0
+{-# INLINE ifoldl'ListOff #-}
 
 -- traverse (uncurry' f) . zip [0..] seems to not work well:
 -- https://gitlab.haskell.org/ghc/ghc/-/issues/22673
 itraverseListOff :: Applicative f => Int -> (Int -> a -> f b) -> [a] -> f [b]
-itraverseListOff !_   _ []     = pure []
-itraverseListOff !off f (x:xs) = liftA2 (:) (f off x) (itraverseListOff (off + 1) f xs)
+itraverseListOff off f = ifoldrListOff off (\n x xs -> liftA2 (:) (f n x) xs) (pure [])
+{-# INLINE itraverseListOff #-}
 
 -- TODO: we could experiment with streaming framework
 -- imapListFB f xs = build (\c n -> ifoldr (\i a -> c (f i a)) n xs)
@@ -336,7 +352,7 @@ instance TraversableWithIndex Int ZipList where
 -------------------------------------------------------------------------------
 
 instance FunctorWithIndex Int NonEmpty where
-  imap = imapDefault
+  imap f ~(a :| as) = f 0 a :| imapListOff 1 f as
   {-# INLINE imap #-}
 instance FoldableWithIndex Int NonEmpty where
   ifoldMap f (x :| xs) = mappend (f 0 x) (ifoldMapListOff 1 f xs)
