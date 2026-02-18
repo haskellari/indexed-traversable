@@ -1,6 +1,6 @@
 cabal-version:      1.12
 name:               indexed-traversable
-version:            0.1.2
+version:            0.1.5
 x-revision:         1
 build-type:         Simple
 license:            BSD2
@@ -47,8 +47,13 @@ tested-with:
    || ==8.6.5
    || ==8.8.4
    || ==8.10.7
-   || ==9.0.1
-   || ==9.2.1
+   || ==9.0.2
+   || ==9.2.8
+   || ==9.4.8
+   || ==9.6.7
+   || ==9.8.4
+   || ==9.10.3
+   || ==9.12.3
 
 source-repository head
   type:     git
@@ -70,8 +75,8 @@ library
 
   build-depends:
       array         >=0.3.0.2 && <0.6
-    , base          >=4.3     && <4.17
-    , containers    >=0.4.0.0 && <0.7
+    , base          >=4.3     && <4.23
+    , containers    >=0.4.0.0 && <0.9
     , transformers  >=0.3.0.0 && <0.7
 
   if !impl(ghc >=7.8)
