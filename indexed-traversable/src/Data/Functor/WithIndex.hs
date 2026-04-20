@@ -4,6 +4,7 @@
 #elif __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Trustworthy #-}
 #endif
+-- | Indexed Functors.
 module Data.Functor.WithIndex (
     -- * Indexed Functors
     FunctorWithIndex(..),

@@ -33,7 +33,7 @@ import CoerceCompat
 -- | Traverse with an index (and the arguments flipped).
 --
 -- @
--- 'for' a ≡ 'ifor' a '.' 'const'
+-- 'Data.Traversable.for' a ≡ 'ifor' a 'Data.Function..' 'Data.Function.const'
 -- 'ifor' ≡ 'flip' 'itraverse'
 -- @
 ifor :: (TraversableWithIndex i t, Applicative f) => t a -> (i -> a -> f b) -> f (t b)
@@ -44,10 +44,10 @@ ifor = flip itraverse
 -- evaluate these actions from left to right, and collect the results, with access
 -- the index.
 --
--- When you don't need access to the index 'mapM' is more liberal in what it can accept.
+-- When you don't need access to the index 'Data.Traversable.mapM' is more liberal in what it can accept.
 --
 -- @
--- 'mapM' ≡ 'imapM' '.' 'const'
+-- 'Data.Traversable.mapM' ≡ 'imapM' 'Data.Function..' 'Data.Function.const'
 -- @
 imapM :: (TraversableWithIndex i t, Monad m) => (i -> a -> m b) -> t a -> m (t b)
 imapM f = unwrapMonad #. itraverse (WrapMonad #.. f)
@@ -58,7 +58,7 @@ imapM f = unwrapMonad #. itraverse (WrapMonad #.. f)
 -- its position (and the arguments flipped).
 --
 -- @
--- 'forM' a ≡ 'iforM' a '.' 'const'
+-- 'Data.Traversable.forM' a ≡ 'iforM' a 'Data.Function..' 'Data.Function.const'
 -- 'iforM' ≡ 'flip' 'imapM'
 -- @
 iforM :: (TraversableWithIndex i t, Monad m) => t a -> (i -> a -> m b) -> m (t b)
@@ -70,7 +70,7 @@ iforM = flip imapM
 -- 'imapAccumR' accumulates state from right to left.
 --
 -- @
--- 'Data.Traversable.mapAccumR' ≡ 'imapAccumR' '.' 'const'
+-- 'Data.Traversable.mapAccumR' ≡ 'imapAccumR' 'Data.Function..' 'Data.Function.const'
 -- @
 imapAccumR :: TraversableWithIndex i t => (i -> s -> a -> (s, b)) -> s -> t a -> (s, t b)
 imapAccumR f s0 a = swap (Lazy.runState (forwards (itraverse (\i c -> Backwards (Lazy.state (\s -> swap (f i s c)))) a)) s0)
@@ -81,7 +81,7 @@ imapAccumR f s0 a = swap (Lazy.runState (forwards (itraverse (\i c -> Backwards 
 -- 'imapAccumL' accumulates state from left to right.
 --
 -- @
--- 'Data.Traversable.mapAccumL' ≡ 'imapAccumL' '.' 'const'
+-- 'Data.Traversable.mapAccumL' ≡ 'imapAccumL' 'Data.Function..' 'Data.Function.const'
 -- @
 imapAccumL :: TraversableWithIndex i t => (i -> s -> a -> (s, b)) -> s -> t a -> (s, t b)
 imapAccumL f s0 a = swap (Lazy.runState (itraverse (\i c -> Lazy.state (\s -> swap (f i s c))) a) s0)
