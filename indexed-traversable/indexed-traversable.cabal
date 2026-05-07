@@ -1,7 +1,6 @@
 cabal-version:      1.12
 name:               indexed-traversable
-version:            0.1.4
-x-revision:         2
+version:            0.1.5
 build-type:         Simple
 license:            BSD2
 license-file:       LICENSE
@@ -52,6 +51,11 @@ source-repository head
   location: https://github.com/haskellari/indexed-traversable
   subdir:   indexed-traversable
 
+flag base-ge-4-18
+  description: @base >=4.18@ (GHC-9.6)
+  default:     True
+  manual:      False
+
 library
   default-language: Haskell2010
   hs-source-dirs:   src
@@ -72,5 +76,11 @@ library
     , containers    >=0.6.0.1 && <0.9
     , transformers  >=0.5.6.0 && <0.7
 
-  if !impl(ghc >=9.6)
+  if !flag(base-ge-4-18)
     build-depends: foldable1-classes-compat >=0.1 && <0.2
+
+  if flag(base-ge-4-18)
+    build-depends: base >=4.18
+
+  else
+    build-depends: base <4.18
