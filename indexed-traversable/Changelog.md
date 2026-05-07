@@ -1,3 +1,7 @@
+# 0.1.5 [2026-05-07]
+
+- Use automatic flags for compatibility conditionals
+
 # 0.1.4 [2024-05-dd]
 
 - Drop support for GHCs prior 8.6.5
